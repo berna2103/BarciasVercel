@@ -1,0 +1,146 @@
+{
+  "hero": {
+    "headline": "Plumeros, Landscapers, Electricistas: Dejen de Perder Dinero.",
+    "subHeadline": "Convierta Clics en Llamadas con un Sitio Local Profesional que Genera Clientes.",
+    "primaryCta": "Reserve mi Sesión GRATUITA de Plan de Crecimiento con IA",
+    "secondaryCta": "Ver la Oferta de Motor de Clientes Locales de $2,000"
+  },
+  "contact": {
+    "headline": "Reserve su Sesión GRATUITA de Plan de Crecimiento con IA",
+    "subHeadline": "Vea exactamente cómo arreglaremos su huella digital en 15 minutos. Sin ventas, solo una estrategia personalizada.",
+    "form_name_label": "Su Nombre (Obligatorio)",
+    "form_email_label": "Correo Electrónico (Obligatorio)",
+    "form_phone_label": "Mejor Número de Teléfono (Obligatorio)",
+    "form_type_label": "¿Qué tipo de negocio tiene? (Obligatorio)",
+    "form_select_default": "Seleccione su industria",
+    "form_type_plumbing": "Fontanería / Climatización",
+    "form_type_electrician": "Electricista",
+    "form_type_landscaping": "Jardinería",
+    "form_type_junk": "Retiro de Escombros",
+    "form_type_construction": "Subcontratista de Construcción",
+    "form_type_other": "Otro Servicio Local",
+    "submit_button": "Iniciar mi Plan de Crecimiento",
+    "modal_title": "Envío Confirmado",
+    "modal_close_button": "Cerrar",
+    "success_message": "¡Su consulta ha sido enviada con éxito! Nos pondremos en contacto con usted en breve."
+  },
+  "project": {
+    "title": "Proyectos Populares",
+    "subtitle": "Presentamos Diseños y Soluciones de Próxima Generación. Cree, Innove y Eleve."
+  },
+  "review": {
+    "title": "Reseñas de Clientes"
+  },
+  "specialize": {
+    "title": "Estrategias Probadas Utilizadas por Profesionales de Oficios de Alto Nivel",
+    "subtitle": "No construimos sitios web de marketing genéricos. Construimos **activos digitales** enfocados y de alta velocidad diseñados para reemplazar servicios costosos de generación de leads y generar llamadas a su negocio, ya sea Plomero, Techador o Paisajista."
+  },
+  "pricing": {
+    "title": "Consiga Mas Clientes Locales desde $2,000 Garantizado",
+    "subtitle": "Lanzamiento de todo su negocio digital por una tarifa única y plana. Deje de depender de costosos servicios de generación de leads o paginas genericas.",
+    "banner": "Deja De Pagar Por Clientes Potenciales. Sé Dueño De Tu Proceso"
+  },
+  "records": [
+    {
+      "imgSrc": "/images/records/star.svg",
+      "digit": "40+ Trabajos Calificados/Mes", 
+      "desc": "Promedio de llamadas de servicio de alto valor generadas para nuestros clientes locales de Fontanería, Climatización y Paisajismo."
+    },
+    {
+      "imgSrc": "/images/records/user.svg",
+      "digit": "12+ Profesionales Lanzados", 
+      "desc": "Sitios web lanzados para Plomeros, Electricistas y Subcontratistas Generales reales listos para escalar."
+    },
+    {
+      "imgSrc": "/images/records/cart.svg",
+      "digit": "90% Tráfico Móvil", 
+      "desc": "Diseño 'Mobile-First': dirigido a clientes que buscan ayuda urgente en sus teléfonos."
+    },
+    {
+      "imgSrc": "/images/records/star.svg",
+      "digit": "5.0 Promedio de Google",
+      "desc": "Estrategias enfocadas en exhibir y generar reseñas verificadas de 5 estrellas en Google desde los sitios de trabajo."
+    }
+  ],
+  "reviews": [
+    {
+      "imgSrc": "/images/review/daniel.webp",
+      "name": "Mike J., Plomero, Chicago IL", 
+      "rating": 5.0,
+      "desc": "Mi teléfono comenzó a sonar la semana después del lanzamiento. Reemplazamos la antigua dependencia de Yelp por llamadas de servicio directo de alta calidad que se convierten. Una gran diferencia para mis resultados."
+    },
+    {
+      "imgSrc": "/images/review/sophia.webp",
+      "name": "Sarah K., Paisajismo y Pavimentación", 
+      "rating": 5.0,
+      "desc": "Diseñaron un sitio que nos hace ver como el equipo más profesional de la ciudad. Estamos ganando trabajos comerciales más grandes con solo enviar a los clientes al sitio para un vistazo rápido."
+    },
+    {
+      "imgSrc": "/images/review/marcus.webp",
+      "name": "David L., Subcontratista General", 
+      "rating": 4.9,
+      "desc": "Finalmente obtuve un sitio web del que puedo estar orgulloso. Es simple, muestra nuestra galería de proyectos y el formulario de cotización realmente funciona. Valió cada centavo para dejar las redes sociales."
+    }
+  ],
+  "specialization_list": [
+    {
+      "imgSrc": "/images/specialization/webdesign.svg",
+      "title": "El Sitio Móvil \"Llamada-Ahora\"", 
+      "desc": "Un sitio creado para la urgencia del trabajo. Su número de teléfono es un botón grande y pulsable que carga perfectamente incluso con mal servicio 4G en un sitio de trabajo."
+    },
+    {
+      "imgSrc": "/images/specialization/logodesign.svg",
+      "title": "Identidad Instantánea de Flota y Uniforme", 
+      "desc": "Incluye un logotipo limpio y un kit de marca, haciendo que sus camionetas y uniformes parezcan más establecidos que la competencia."
+    },
+    {
+      "imgSrc": "/images/specialization/seooptimize.svg",
+      "title": "Domine el Paquete de Mapas de Google", 
+      "desc": "Optimizamos su Perfil de Negocio de Google y su sitio web para dominar el '3-Pack' en búsquedas locales (\"Electricistas cerca de mí\")."
+    },
+    {
+      "imgSrc": "/images/specialization/contentwrite.svg",
+      "title": "Redacción de Contenido de Alto Valor de Servicio", 
+      "desc": "Contenido centrado en trabajos de alta rentabilidad (ej. tuberías, reparación de cimientos) utilizando las palabras clave exactas que buscan los clientes."
+    },
+    {
+      "imgSrc": "/images/specialization/digitalmarketing.svg",
+      "title": "Embudo Automatizado de Reseñas de 5 Estrellas", 
+      "desc": "Enlaces simples por mensaje de texto o correo electrónico después de cada trabajo para recopilar automáticamente reseñas positivas de 5 estrellas en Google, construyendo una confianza local inquebrantable."
+    },
+    {
+      "imgSrc": "/images/specialization/mobileapp.svg",
+      "title": "Cero Dolores de Cabeza Técnicos, Siempre", 
+      "desc": "Nos encargamos del alojamiento, la seguridad y las actualizaciones. Su sitio está funcionando 24/7, por lo que nunca tiene que preocuparse por un \"sitio web roto\"."
+    }
+  ],
+  "plans": [
+    {
+      "type": "Consigue Nuevos Clientes Locales Rápidamente",
+      "desc": "Su inversión única para un sitio web profesional 3 en 1 que comienza a generar clientes potenciales locales de alta calidad de inmediato. Deje de pagar por costosas plataformas de generación de leads.",
+      "option": [
+        "Sitio web de 3 páginas de alta conversión y \"Mobile-First\" (Inicio, Servicios, Contacto)",
+        "100% Propiedad del Dominio y el Código",
+        "Dominio y Certificado SSL Gratuitos durante 1 Año",
+        "Configuración del Perfil de Negocio de Google y Optimización de SEO Local",
+        "Integración de Widgets de Reseñas de Clientes (Google/Yelp)",
+        "Kit de Marca Física GRATUITO: 15 Camisetas de Marca Personalizadas (M/L) y 100 Tarjetas de Presentación",
+        "Formulario de Contacto Directo Integrado con su Correo Electrónico/CRM",
+        "Lanzamiento Garantizado dentro de los 14 Días Hábiles"
+      ],
+      "price_label": " Tarifa Única",
+      "value_label": "Valor Estimado: $",
+      "save_label": " (Ahorre $",
+      "cta": "Asegurar Mi Espacio de Lanzamiento"
+    }
+  ],
+  "footer": {
+    "address": "925 Filbert Street Pennsylvania 18072",
+    "phone": "+ 45 34 11 44 11",
+    "email": "info@gmail.com",
+    "copyright_prefix": "@2025 - Todos los Derechos Reservados por",
+    "newsletter_title": "Boletín Informativo",
+    "newsletter_placeholder": "Correo Electrónico*",
+    "newsletter_cta": "Suscribirse"
+  }
+}
