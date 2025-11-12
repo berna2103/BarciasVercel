@@ -1,3 +1,4 @@
+// src/app/components/LanguageSwitcher/index.tsx
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -11,7 +12,7 @@ const locales = [
 
 const LanguageSwitcher = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname(); // pathname can be null
   const [isOpen, setIsOpen] = useState(false);
   const [currentLocale, setCurrentLocale] = useState('en'); 
 
@@ -22,6 +23,11 @@ const LanguageSwitcher = () => {
 
   // Hydration fix: Determine the current locale safely after mounting
   useEffect(() => {
+    // 💥 FIX: Check if pathname is null before attempting to split/filter
+    if (!pathname) { 
+        return; // Exit early if pathname is null
+    }
+      
     // Splits the path and filters out empty strings: ['', 'en', 'contact'] -> ['en', 'contact']
     const pathSegments = pathname.split('/').filter(Boolean);
     const localeSegment = pathSegments[0]; 

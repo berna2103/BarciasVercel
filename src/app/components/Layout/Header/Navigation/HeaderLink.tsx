@@ -1,3 +1,4 @@
+// src/app/components/Layout/Header/Navigation/HeaderLink.tsx
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
@@ -30,6 +31,11 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ item, lang }) => {
     return href.startsWith('/#') ? `/${lang}${href}` : href;
   };
 
+  // FIX: Safely check if path is a string before calling startsWith
+  const isActiveByPathPrefix = path 
+    ? path.startsWith(`/${item.label.toLowerCase()}`)
+    : false;
+
   return (
     <li
       className='relative'
@@ -40,7 +46,8 @@ const HeaderLink: React.FC<HeaderLinkProps> = ({ item, lang }) => {
         className={`text-base flex font-normal  text-darkblue dark:text-white hover:text-primary  dark:hover:text-primary  ${
           item.href === path ? '!text-primary dark:!text-primary' : null
         } ${
-          path.startsWith(`/${item.label.toLowerCase()}`)
+          // Use the safely calculated boolean variable
+          isActiveByPathPrefix
             ? 'text-primary dark:!text-primary'
             : null
         } text-black hover:text-primary dark:text-white dark:hover:text-primary`}>
