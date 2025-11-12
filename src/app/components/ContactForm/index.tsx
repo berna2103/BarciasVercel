@@ -10,6 +10,7 @@ interface ContactDictionary {
   headline: string;
   subHeadline: string;
   form_name_label: string;
+  form_business_name_label: string; // <--- NEW FIELD
   form_email_label: string;
   form_phone_label: string;
   form_type_label: string;
@@ -45,6 +46,7 @@ const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
 const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
   const [formData, setFormData] = useState({
     firstname: '',
+    businessName: '', // <--- NEW STATE
     email: '',
     phnumber: '',
     serviceType: '',
@@ -81,9 +83,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
     // 1. Check if all required fields are filled (basic check)
     const allRequiredFilled = [
       formData.firstname,
+      formData.businessName, // <--- CHECK NEW FIELD
       formData.email,
       formData.phnumber,
       formData.serviceType,
+      formData.description, // <--- Check description as required
     ].every((value) => value.trim() !== '');
 
     // 2. Perform format validation checks
@@ -141,6 +145,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
   const resetForm = () => {
     setFormData({
       firstname: '',
+      businessName: '', // <--- CLEAR NEW FIELD
       email: '',
       phnumber: '',
       serviceType: '',
@@ -169,6 +174,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           Name: formData.firstname,
+          BusinessName: formData.businessName, // <--- INCLUDE NEW FIELD IN PAYLOAD
           Email: formData.email,
           PhoneNo: formData.phnumber.replace(/\D/g, ''), // Send digits only for backend consistency
           ServiceType: formData.serviceType,
@@ -246,8 +252,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
             
             <form onSubmit={handleSubmit} className='grid grid-cols-1 md:grid-cols-2 gap-x-6 -mx-3'>
               
-              {/* NAME FIELD */}
-              <div className='md:col-span-2 px-3'>
+              {/* NAME FIELD (Updated to span 1 column) */}
+              <div className='w-full px-3'>
                 <div className='my-2.5'>
                   <label htmlFor='fname' className='pb-2 inline-block text-sm font-medium text-gray-700 dark:text-gray-300'>
                     {dict.contact.form_name_label}
@@ -265,6 +271,25 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
                 </div>
               </div>
               
+              {/* BUSINESS NAME FIELD (NEW FIELD, spans 1 column) */}
+              <div className='w-full px-3'>
+                <div className='my-2.5'>
+                  <label htmlFor='bname' className='pb-2 inline-block text-sm font-medium text-gray-700 dark:text-gray-300'>
+                    {dict.contact.form_business_name_label}
+                  </label>
+                  <input
+                    id='bname'
+                    type='text'
+                    name='businessName'
+                    value={formData.businessName}
+                    onChange={handleChange}
+                    placeholder='Doe Plumbing & HVAC'
+                    required
+                    className='w-full text-base px-4 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2.5 transition-all duration-300 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none'
+                  />
+                </div>
+              </div>
+
               {/* EMAIL FIELD */}
               <div className='w-full px-3'>
                 <div className='my-2.5'>
@@ -338,8 +363,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ dict }) => {
                   </div>
                 </div>
               </div>
-              
-              {/* GENERAL INQUIRY TEXTAREA (Optional) */}
+
+              {/* GENERAL INQUIRY TEXTAREA (REQUIRED) */}
               <div className='md:col-span-2 px-3'>
                 <div className='my-2.5'>
                   <label htmlFor='description' className='pb-2 inline-block text-sm font-medium text-gray-700 dark:text-gray-300'>

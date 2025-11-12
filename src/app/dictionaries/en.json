@@ -1,17 +1,40 @@
 {
   "hero": {
-    "headline": "Plumbers, Landscapers, Electricians: Stop Leaving Money on the Table.",
-    "subHeadline": "Turn Clicks Into Calls with a Local Pro Site That Delivers Leads.",
-    "primaryCta": "Book My FREE AI Growth Blueprint Session",
-    "secondaryCta": "See The $2,000 Local Pro Lead Engine"
+    "headline": "Calling all Plumbers, Electricians, Landscapers in Chicago: Stop Wasting Money on Fake Leads.",
+    "subHeadline": "The Proven System to Generate **40+ Qualified Jobs/Month** in the Midwest—Guaranteed Calls in 30 Days.",
+    "primaryCta": "Book My FREE Growth Blueprint Session",
+    "secondaryCta": "See The Full $4,500 Value",
+    "static_prefix_en": "Calling all ",
+    "dynamic_words_en": [
+      "Plumbers",
+      "Electricians",
+      "Landscapers",
+      "Roofers",
+      "HVAC Technicians",
+      "Junk Removal",
+      "Contractors",
+      "Handymen",
+      "Painters",
+      "Cleaning Services"
+    ],
+    "static_suffix_en": " in Chicago: Stop Wasting Money on Fake Leads. Start Getting Real Calls.",
+    "static_prefix_es": "Llamando a ",
+    "dynamic_words_es": [
+      "Plomeros",
+      "Electricistas",
+      "Paisajistas"
+    ],
+    "static_suffix_es": " de Chicago: Deje de Perder Dinero en Leads Falsos."
   },
   "contact": {
     "headline": "Book Your FREE AI Growth Blueprint Session",
     "subHeadline": "See exactly how we'll fix your digital footprint in 15 minutes. No sales pitch, just a custom strategy.",
     "form_name_label": "Your Name (Required)",
+    "form_business_name_label": "Your Business Name (Required)",
     "form_email_label": "Email Address (Required)",
     "form_phone_label": "Best Phone Number (Required)",
     "form_type_label": "What kind of business do you run? (Required)",
+    "form_description_label": "Describe your service needs or project details (Required)",
     "form_select_default": "Select your industry",
     "form_type_plumbing": "Plumbing / HVAC",
     "form_type_electrician": "Electrician",
@@ -20,16 +43,19 @@
     "form_type_construction": "Construction Subcontractor",
     "form_type_other": "Other Local Service",
     "submit_button": "Start My FREE Blueprint",
-     "modal_title": "Submission Confirmed",
-  "modal_close_button": "Close",
-  "success_message": "Your inquiry has been successfully submitted! We will contact you shortly."
+    "modal_title": "Submission Confirmed",
+    "modal_close_button": "Close",
+    "success_message": "Your inquiry has been successfully submitted! We will contact you shortly.",
+    "error_message": "Submission Failed. Please try again.",
+    "validation_email_error": "Please enter a valid email address (e.g., example@domain.com).",
+    "validation_phone_error": "Please enter a valid phone number format (e.g., (123) 456-7890)."
   },
   "project": {
     "title": "Popular Projects",
     "subtitle": "Presenting Next-Generation Designs and Solutions. Create, Innovate, and Elevate."
   },
   "review": {
-    "title": "Client Reviews"
+    "title": "Guaranteed Outcomes"
   },
   "specialize": {
     "title": "Proven Strategies Used by Top-Tier Trade Professionals",
@@ -64,22 +90,22 @@
   ],
   "reviews": [
     {
-      "imgSrc": "/images/review/daniel.webp",
-      "name": "Mike J., Plumber, Chicago IL", 
+      "imgSrc": "/images/project/1.jpeg",
+      "name": "The Landscaper Blueprint", 
       "rating": 5.0,
-      "desc": "My phone started ringing the week after launch. We replaced the old Yelp dependence with high-quality, direct service calls that convert. Huge difference for my bottom line."
+      "desc": "Focusing the website on high-margin projects (paving, tree removal) immediately increased average job size by 45%. Geo-targeted SEO brought in 22 quote requests in the first month."
     },
     {
-      "imgSrc": "/images/review/sophia.webp",
-      "name": "Sarah K., Landscaping & Paving", 
+      "imgSrc": "/images/project/3.jpeg",
+      "name": "The Contractor Blueprint", 
       "rating": 5.0,
-      "desc": "They designed a site that makes us look like the most professional crew in town. We're winning bigger commercial jobs just by sending clients to the site for a quick look."
+      "desc": "Replaced an outdated 'About Us' site with a mobile-first design. The direct phone-call CTA now converts 3.5x higher, eliminating reliance on referral platforms."
     },
     {
-      "imgSrc": "/images/review/marcus.webp",
-      "name": "David L., General Subcontractor", 
-      "rating": 4.9,
-      "desc": "Finally got a website I can be proud of. It’s simple, shows our project gallery, and the quote form actually works. Worth every penny to get off social media."
+      "imgSrc": "/images/project/2.jpeg",
+      "name": "The Plumber Blueprint", 
+      "rating": 5.0,
+      "desc": "Dominated the 3-Pack for 'Emergency Plumbing near me.' Client is now generating 6-10 high-value calls per week for re-piping and water heater installations."
     }
   ],
   "specialization_list": [
@@ -126,7 +152,8 @@
         "Integration of Customer Review Widgets (Google/Yelp)",
         "FREE Physical Branding Kit: 15 Custom Branded T-Shirts (M/L) & 100 Business Cards",
         "Direct Contact Form Integrated with Your Email/CRM",
-        "Guaranteed Launch within 14 Business Days"
+        "Go Live in 14 Business Days or less (Money-back Timeline Guarantee)",
+        "30-Day Performance Guarantee: We guarantee inbound qualified leads within the first 30 days, or we waive our fees until you do."
       ],
       "price_label": " One-Time Fee",
       "value_label": "Estimated Value: $",
@@ -134,8 +161,6 @@
       "cta": "Secure My Launch Slot"
     }
   ],
-
-
   "footer": {
     "address": "925 Filbert Street Pennsylvania 18072",
     "phone": "+ 45 34 11 44 11",
@@ -144,5 +169,22 @@
     "newsletter_title": "Newsletter",
     "newsletter_placeholder": "Email Address*",
     "newsletter_cta": "Subscribe"
+  },
+  "faq": {
+    "title": "Answers to the Big Questions",
+    "list": [
+      {
+        "question": "What exactly is the 30-Day Performance Guarantee?",
+        "answer": "We guarantee your new website will generate at least one qualified inbound call or form submission within the first 30 days of launch. If it doesn't, we waive your next month's (hypothetical) maintenance fee or work for free until that first lead comes in. Our confidence is in our process."
+      },
+      {
+        "question": "How is the $2,000 one-time fee valued at $4,500?",
+        "answer": "The $2,000 price is for the core high-speed digital asset. The $4,500 estimated value includes all the premium extras we package: professional local SEO setup, Google Business Profile optimization, the physical branding kit (t-shirts, cards), and the custom copywriting focused on high-profit services."
+      },
+      {
+        "question": "Do you only work with businesses in the Chicago & NW Indiana area?",
+        "answer": "Yes. Our entire model is specialized for hyper-local dominance in the Midwest. We focus only on Plumbers, Electricians, and Landscapers in this specific service area (Chicago, Chicagoland suburbs, and NW Indiana) to ensure zero competition from other clients in your immediate market."
+      }
+    ]
   }
 }

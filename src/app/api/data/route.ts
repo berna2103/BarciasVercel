@@ -1,3 +1,5 @@
+// src/app/api/data/route.ts
+
 import { NextResponse } from 'next/server'
 
 import { NavLinkType } from '@/app/types/navlink'
@@ -95,26 +97,9 @@ const RecordData: RecordType[] = [
 ];
 
 
-const ReviewData: ReviewType[] = [
-  {
-    imgSrc: '/images/review/daniel.webp',
-    name: 'Mike J., Plumber, Chicago IL', 
-    rating: 5.0,
-    desc: "My phone started ringing the week after launch. We replaced the old Yelp dependence with high-quality, direct service calls that convert. Huge difference for my bottom line.",
-  },
-  {
-    imgSrc: '/images/review/sophia.webp',
-    name: 'Sarah K., Landscaping & Paving', 
-    rating: 5.0,
-    desc: "They designed a site that makes us look like the most professional crew in town. We're winning bigger commercial jobs just by sending clients to the site for a quick look.",
-  },
-  {
-    imgSrc: '/images/review/marcus.webp',
-    name: 'David L., General Subcontractor', 
-    rating: 4.9,
-    desc: "Finally got a website I can be proud of. It’s simple, shows our project gallery, and the quote form actually works. Worth every penny to get off social media.",
-  },
-]
+// REMOVED: ReviewData array from API since it's now dictionary-driven mock content.
+// const ReviewData: ReviewType[] = [...]
+
 
 const SpecializeData: SpecializeType[] = [
   {
@@ -232,7 +217,7 @@ export const GET = () => {
     NavLinkData,
     ProjectData,
     RecordData,
-    ReviewData,
+    // ReviewData, // Removed
     SpecializeData,
     PlanData,
     CategoryData,

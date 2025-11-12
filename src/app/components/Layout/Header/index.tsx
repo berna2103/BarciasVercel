@@ -187,7 +187,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
             <MobileHeaderLink key={index} item={item} lang={lang} />
           ))}
           <div className='mt-4 flex flex-col gap-4 w-full'>
-            <div className='relative w-full'>
+            {/* <div className='relative w-full'>
               <input
                 type='text'
                 placeholder='Search'
@@ -199,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
                 height={17}
                 className='text-primary text-bold absolute top-3 right-3'
               />
-            </div>
+            </div> */}
             <Link
               href={`/${lang}/#contact`} // Use the correct root link for Contact Us
               className='px-4 py-2 bg-primary text-white rounded-lg outline-none hover:bg-transparent hover:text-primary border border-primary duration-500 text-base font-semibold'

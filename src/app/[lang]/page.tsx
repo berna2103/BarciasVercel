@@ -7,6 +7,7 @@ import Project from '../components/Home/Project'
 import Records from '../components/Home/Records'
 import Review from '../components/Home/Review'
 import Specialize from '../components/Home/Specialize'
+import FAQ from '../components/Home/FAQ'
 import { getDictionary } from '../i18n' // Imported utility
 
 export default async function Home({ 
@@ -30,6 +31,7 @@ export default async function Home({
       <Review dict={dict} />
       <Specialize dict={dict} />
       <Pricing dict={dict} />
+      <FAQ dict={dict} />
       <ContactForm dict={dict}  /> 
     </main>
   )

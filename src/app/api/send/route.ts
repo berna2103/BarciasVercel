@@ -17,16 +17,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Safely parse the request body (reCAPTCHA token field removed)
-    const { Email, Name, PhoneNo, ServiceType, Description } = await request.json(); 
+    // Safely parse the request body and include the new field
+    const { Email, Name, PhoneNo, ServiceType, Description, BusinessName } = await request.json(); 
 
-    if (!Email || !Name || !PhoneNo || !ServiceType || !Description) { 
+    // Update validation to include BusinessName
+    if (!Email || !Name || !PhoneNo || !ServiceType || !Description || !BusinessName) { 
         return NextResponse.json({ message: 'Missing required form fields.' }, { status: 400 });
     }
     
     // 1. Prepare data payload
     const leadData = {
         name: Name,
+        businessName: BusinessName, // <--- NEW FIELD
         email: Email,
         phoneNo: PhoneNo.replace(/\D/g, ''), 
         serviceType: ServiceType,
@@ -48,15 +50,17 @@ export async function POST(request: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: 'Contact Form <onboarding@barciastech.com>', 
       to: ['bernardojimenezz@gmail.com'], 
-      subject: `New Lead: ${ServiceType} from ${Name}`,
+      subject: `New Lead: ${ServiceType} from ${Name} (${BusinessName})`, // Update subject
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
           <h2 style="color: #333;">New Contact Form Submission</h2>
           <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Name:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${Name}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Business Name:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${BusinessName}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${Email}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Phone:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${PhoneNo}</td></tr>
-            <tr><td style="padding: 8px; font-weight: bold;">Service Type:</td><td style="padding: 8px;">${ServiceType}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Service Type:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${ServiceType}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Description:</td><td style="padding: 8px;">${Description}</td></tr>
           </table>
         </div>
       `,
