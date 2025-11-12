@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DM_Sans } from 'next/font/google'
+import { Analytics } from "@vercel/analytics/next"
 import './globals.css'
 // REMOVE IMPORTS: Header, ThemeProvider, Footer, ScrollToTop
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={`${DMSans.variable} antialiased dark:bg-darkmode`}>
           {children}
       </body>
+      <Analytics/>
     </html>
   )
 }
