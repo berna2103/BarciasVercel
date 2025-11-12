@@ -104,15 +104,15 @@ const Project: React.FC<ProjectProps> = ({ dict }) => {
                             className='w-full rounded-lg'
                           />
                         </div>
-                        <div className='flex items-center gap-2'>
+                        <div className='flex text-center items-center gap-2'>
                           <Image
-                            src={getFixedPath('/images/project/get-nextjs-logo.svg')}
+                            src={getFixedPath('/images/project/get-nextjs-logo.png')}
                             alt={'logo'}
-                            width={31}
-                            height={31}
+                            width={20}
+                            height={20}
                             className='rounded-full'
                           />
-                          <p className='text-base font-medium text-darkblue dark:text-white'>
+                          <p className='text-base font-small text-darkblue dark:text-white'>
                             {item.name}
                           </p>
                         </div>
@@ -134,8 +134,8 @@ const Project: React.FC<ProjectProps> = ({ dict }) => {
             <Image
               src={getFixedPath('/images/banner/pattern2.svg')}
               alt='ptrn1'
-              width={141}
-              height={141}
+              width={180}
+              height={180}
             />
           </div>
         </div>

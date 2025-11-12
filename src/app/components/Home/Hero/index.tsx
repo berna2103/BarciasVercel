@@ -68,13 +68,13 @@ const Hero: React.FC<HeroProps> = ({ dict, lang }) => {
                 <div className='flex item-center gap-5'>
                   {/* Primary CTA: The Low-Commitment Lead Magnet, linking to #contact */}
                   <Link href={`/${lang}/#contact`}> 
-                    <button className='px-12 py-3 font-medium text-white border rounded-lg border-primary bg-primary hover:bg-transparent hover:text-primary hover:cursor-pointer duration-300'>
+                    <button className='px-6 py-3 md:px-12 md:py-3 text-sm md:text-base** font-medium text-white border rounded-lg border-primary bg-primary hover:bg-transparent hover:text-primary hover:cursor-pointer duration-300'>
                       {dict.hero.primaryCta}
                     </button>
                   </Link>
                   {/* Secondary CTA: See The Offer, linking to #pricing */}
                   <Link href={`/${lang}/#pricing`}> 
-                    <button className='px-12 py-3 font-medium text-primary border rounded-lg border-primary bg-transparent hover:bg-primary hover:text-white hover:cursor-pointer duration-300'>
+                    <button className='px-6 py-3 md:px-12 md:py-3 text-sm md:text-base font-medium text-primary border rounded-lg border-primary bg-transparent hover:bg-primary hover:text-white hover:cursor-pointer duration-300'>
                       {dict.hero.secondaryCta}
                     </button>
                   </Link>

@@ -46,33 +46,29 @@ const NavLinkData: NavLinkType[] = [
 
 const ProjectData: ProjectType[] = [
   {
-    coverImg: '/images/project/blogforge.webp',
-    name: 'Junk Removal Demo',
+    coverImg: '/images/project/4.jpeg',
+    name: 'Hair Salon Demo',
   },
   {
-    coverImg: '/images/project/gleamer.webp',
+    coverImg: '/images/project/2.jpeg',
+    name: 'Taekwondo Demo',
+  },
+  {
+    coverImg: '/images/project/1.jpeg',
     name: 'Landscaper Demo',
   },
   {
-    coverImg: '/images/project/learnaxis.webp',
-    name: 'Plumber Demo',
+    coverImg: '/images/project/3.jpeg',
+    name: 'General Contractor Demo',
   },
   {
-    coverImg: '/images/project/studiova.webp',
-    name: 'HVAC Contractor Demo',
+    coverImg: '/images/project/5.jpeg',
+    name: 'SaaS Demo',
   },
   {
-    coverImg: '/images/project/homely.webp',
-    name: 'Electrician Demo',
-  },
-  {
-    coverImg: '/images/project/awake.webp',
+    coverImg: '/images/project/3.jpeg',
     name: 'Roofer Demo',
-  },
-  {
-    coverImg: '/images/project/endeavor.webp',
-    name: 'Subcontractor Demo',
-  },
+  }
 ]
 
 const RecordData: RecordType[] = [

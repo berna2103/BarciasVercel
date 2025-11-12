@@ -102,7 +102,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
         <div className='flex items-center gap-4'>
           <LanguageSwitcher />
 
-          <div>
+          {/* <div>
             <div className='relative hidden xl:block'>
               <input
                 type='text'
@@ -118,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
                 />
               </button>
             </div>
-          </div>
+          </div> */}
           <button
             aria-label='Toggle theme'
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
