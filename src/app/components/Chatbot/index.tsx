@@ -3,52 +3,129 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import io, { Socket } from 'socket.io-client';
-// Import existing client-side Firebase utilities
 import { db } from '@/lib/firebase/firebase-client'; 
-import { collection, query, orderBy, limit, onSnapshot, Timestamp } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore'; 
 import { Icon } from '@iconify/react';
 
 // --- Types & Constants ---
 interface ChatMessage {
-  id: string;
+  id: string; 
   senderId: string;
   senderName: string;
   text: string;
   timestamp: Date;
 }
 
-// Generate or retrieve a persistent user ID and set a default name
-const CURRENT_USER_ID = localStorage.getItem('chat-user-id') || `guest-${Math.random().toString(36).substring(2, 9)}`;
-localStorage.setItem('chat-user-id', CURRENT_USER_ID);
+interface LeadData {
+    email: string;
+    phone: string;
+}
 
+// NOTE: This phrase MUST match the one defined in pages/api/socket.ts
+const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
 const CHATBOT_NAME = "Barcias Tech Bot";
 const CHATBOT_ID = "BOT_ID";
 
-// Global socket reference (to ensure single instance)
+// Global socket reference
 let socket: Socket | null = null;
 
-// --- Chatbot Component ---
 
+// --- Chatbot Component ---
 const Chatbot: React.FC = () => {
+  // FIX 1: Initialize ID and Name states to null/empty string to defer localStorage access
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>(''); 
+  
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [userName, setUserName] = useState(localStorage.getItem('chat-user-name') || 'Guest');
   
-  // Update user name and persist to local storage
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadFormData, setLeadFormData] = useState<LeadData>({ email: '', phone: '' });
+  const [leadStatus, setLeadStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // FIX 2: Client-side initialization for localStorage (SSR Fix)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Initialize ID
+    const storedId = localStorage.getItem('chat-user-id');
+    let userId = storedId;
+    if (!userId) {
+        userId = `guest-${Math.random().toString(36).substring(2, 9)}`;
+        localStorage.setItem('chat-user-id', userId);
+    }
+    setCurrentUserId(userId);
+    
+    // Initialize Name (This is the name shown in the welcome message)
+    const storedName = localStorage.getItem('chat-user-name') || 'Guest';
+    setUserName(storedName);
+
+  }, []);
+
+  // --- UX Fix: Name Change Handler ---
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newName = e.target.value.trim() || 'Guest';
-      setUserName(newName);
-      localStorage.setItem('chat-user-name', newName);
+      // Set state with the exact input value
+      setUserName(e.target.value);
+  };
+  
+  // Persist name on blur, enforcing a default if empty (UX Fix)
+  const handleNameBlur = () => {
+      // This runs when the user tabs out or clicks away
+      const finalName = userName.trim() || 'Guest';
+      setUserName(finalName);
+      localStorage.setItem('chat-user-name', finalName);
+  }
+  
+  // --- Lead Form Handlers (Unchanged for brevity) ---
+  const handleLeadFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLeadFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const submitLead = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!leadFormData.email || !leadFormData.phone || !currentUserId) return;
+      
+      setLeadStatus('loading');
+      
+      const payload = {
+          Name: userName,
+          Email: leadFormData.email,
+          PhoneNo: leadFormData.phone,
+          BusinessName: 'Chat Lead', 
+          ServiceType: 'Chat Qualified Lead',
+          Description: 'Lead captured via Chatbot qualification form.',
+      };
+
+      try {
+          const res = await fetch('/api/send/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+          });
+
+          if (res.ok) {
+              setLeadStatus('success');
+              socket?.emit('send-message', {
+                  senderId: currentUserId,
+                  senderName: userName,
+                  text: "I've successfully submitted my contact details. Waiting for your specialist!",
+              });
+          } else {
+              setLeadStatus('error');
+          }
+      } catch (error) {
+          console.error('Lead submission error:', error);
+          setLeadStatus('error');
+      }
   };
 
   // Function to establish Socket.IO connection
   const setupSocket = useCallback(() => {
     if (socket && socket.connected) return;
 
-    // Connect to the custom API route
     socket = io({
       path: '/api/socket',
       addTrailingSlash: false,
@@ -56,73 +133,78 @@ const Chatbot: React.FC = () => {
 
     socket.on('connect', () => {
       setConnected(true);
-      console.log('Socket Connected');
     });
 
     socket.on('disconnect', () => {
       setConnected(false);
-      console.log('Socket Disconnected');
     });
 
-    // Handle incoming messages broadcasted from the server
     socket.on('receive-message', (message: any) => {
-      const newMessage: ChatMessage = {
-        id: message.id || Date.now().toString(),
-        senderId: message.senderId,
-        senderName: message.senderName,
-        text: message.text,
-        timestamp: new Date(message.timestamp || Date.now()),
-      };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      if (message.senderId === CHATBOT_ID && message.text.includes(LEAD_QUALIFICATION_TRIGGER)) {
+          setShowLeadForm(true);
+      }
     });
   }, []);
 
-  // Effect for fetching chat history and managing socket connection
+  // Effect for fetching chat history (Single Document Read)
   useEffect(() => {
-    if (!isChatOpen) return;
+    // Wait for currentUserId to be set before fetching data/setting up socket
+    if (!isChatOpen || !currentUserId || userName === '') return; 
 
-    // 1. Setup Socket.IO
     setupSocket();
 
-    // 2. Setup Firestore listener for chat history
-    const q = query(collection(db, 'chats'), orderBy('timestamp', 'asc'), limit(50));
+    const docRef = doc(db, 'chats', currentUserId);
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveMessages: ChatMessage[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        liveMessages.push({
-          id: doc.id,
-          senderId: data.senderId,
-          senderName: data.senderName,
-          text: data.text,
-          timestamp: (data.timestamp as Timestamp)?.toDate() || new Date(), 
-        });
-      });
-      
-      setMessages(liveMessages);
-      
-      // Send an initial welcome message from the bot if the chat is empty
-      if (liveMessages.length === 0) {
-        setMessages([{ 
-            id: 'init-bot', 
-            senderId: CHATBOT_ID, 
-            senderName: CHATBOT_NAME, 
-            text: `Hi ${userName}, how can I help you get more qualified leads today?`, 
-            timestamp: new Date() 
-        }]);
+    // 💡 FIX 4: Initialize unsubscribe variable here
+    let unsubscribe; 
+
+    // Assign the result of onSnapshot to the unsubscribe variable
+    unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const history: { text: string, senderId: string, senderName: string, timestamp: string }[] = data.messages || [];
+        
+        const processedMessages: ChatMessage[] = history.map((msg, index) => ({
+            id: index.toString(),
+            senderId: msg.senderId,
+            senderName: msg.senderName,
+            text: msg.text,
+            timestamp: new Date(msg.timestamp), 
+        }));
+        
+        setMessages(processedMessages);
+        
+        const lastBotMessage = processedMessages.slice().reverse().find(m => m.senderId === CHATBOT_ID);
+        if (lastBotMessage && lastBotMessage.text.includes(LEAD_QUALIFICATION_TRIGGER)) {
+            setShowLeadForm(true);
+        } else {
+             setShowLeadForm(false);
+             setLeadStatus('idle');
+        }
+
+      } else {
+        // If no document exists, initialize with a bot welcome message
+        if (messages.length === 0 || messages[0].senderId !== CHATBOT_ID) {
+            setMessages([{ 
+                id: 'init-bot', 
+                senderId: CHATBOT_ID, 
+                senderName: CHATBOT_NAME, 
+                text: `Hi ${userName || 'Guest'}, how can I help you get more qualified leads today?`, 
+                timestamp: new Date() 
+            }]);
+        }
       }
     });
 
-    // Cleanup function
     return () => {
-        unsubscribe();
+        // 💡 FIX 5: Call the locally scoped unsubscribe variable
+        unsubscribe(); 
         if (socket) {
             socket.disconnect(); 
             socket = null;
         }
     };
-  }, [isChatOpen, setupSocket, userName]);
+  }, [isChatOpen, setupSocket, userName, currentUserId]); 
 
   // Effect to scroll to the bottom of the chat window
   useEffect(() => {
@@ -137,40 +219,32 @@ const Chatbot: React.FC = () => {
     e.preventDefault();
     const text = input.trim();
     
-    // Check connection and input validity
-    if (!text || !socket || !connected || userName.trim() === 'Guest') return;
+    const isNameInvalid = userName.trim() === '' || userName.trim() === 'Guest';
+    if (!text || !socket || !connected || isNameInvalid || showLeadForm || !currentUserId) return; 
 
     const messagePayload = {
-      senderId: CURRENT_USER_ID,
+      senderId: currentUserId, 
       senderName: userName,
       text: text,
     };
 
-    // Emit the message to the Socket.IO server
     socket.emit('send-message', messagePayload);
     setInput('');
-
-    // OPTIONAL: Client-side bot response simulation (for faster feedback)
-    if (messagePayload.senderId === CURRENT_USER_ID) {
-        setTimeout(() => {
-            const botReply: ChatMessage = {
-                id: Date.now().toString(),
-                senderId: CHATBOT_ID,
-                senderName: CHATBOT_NAME,
-                text: `I've sent your message. A specialist will follow up shortly. For immediate booking, please use the contact form.`,
-                timestamp: new Date(),
-            };
-            setMessages((prevMessages) => [...prevMessages, botReply]);
-        }, 1500);
-    }
   };
 
   // --- UI Rendering ---
 
+  // Render nothing until ID/Name are initialized to prevent flicker/errors
+  if (!currentUserId) {
+    return null;
+  }
+
   const messageClass = (senderId: string) => 
-    senderId === CURRENT_USER_ID 
+    senderId === currentUserId 
       ? 'self-end bg-primary text-white rounded-br-none' 
       : 'self-start bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none';
+      
+  const isInputDisabled = !connected || userName.trim() === 'Guest' || showLeadForm || leadStatus === 'success';
 
   return (
     <>
@@ -199,12 +273,14 @@ const Chatbot: React.FC = () => {
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
             <input
                 type="text"
-                value={userName}
+                value={userName === 'Guest' ? '' : userName} 
                 onChange={handleNameChange}
-                placeholder="Enter your name (Required)"
+                onBlur={handleNameBlur} 
+                placeholder="Enter your name (Required)" 
                 className="w-full text-sm px-2 py-1 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-primary"
             />
-            {userName.trim() === 'Guest' && (
+            {/* Show warning if input is empty or defaults to 'Guest' */}
+            {(userName.trim() === 'Guest' || userName.trim() === '') && (
                 <p className='text-xs text-red-500 mt-1'>Please enter a name other than "Guest" to chat.</p>
             )}
           </div>
@@ -213,8 +289,8 @@ const Chatbot: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 text-sm">
             {messages.map((msg, index) => (
               <div 
-                key={msg.id} 
-                className={`flex flex-col max-w-[85%] ${msg.senderId === CURRENT_USER_ID ? 'items-end' : 'items-start'}`}
+                key={index} 
+                className={`flex flex-col max-w-[85%] ${msg.senderId === currentUserId ? 'items-end' : 'items-start'}`}
               >
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                   {msg.senderName} - {msg.timestamp.toLocaleTimeString()}
@@ -230,6 +306,52 @@ const Chatbot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* NEW UI: Lead Qualification Form */}
+          {showLeadForm && leadStatus !== 'success' && (
+              <form onSubmit={submitLead} className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-darkmode">
+                  <p className="text-xs font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      {LEAD_QUALIFICATION_TRIGGER.replace(':', '')}
+                  </p>
+                  <div className="flex flex-col gap-2 mb-2">
+                      <input
+                          type="email"
+                          name="email"
+                          value={leadFormData.email}
+                          onChange={handleLeadFormChange}
+                          placeholder="Email Address"
+                          required
+                          className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                          disabled={leadStatus === 'loading'}
+                      />
+                      <input
+                          type="tel"
+                          name="phone"
+                          value={leadFormData.phone}
+                          onChange={handleLeadFormChange}
+                          placeholder="Phone Number (123-456-7890)"
+                          className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                          disabled={leadStatus === 'loading'}
+                      />
+                  </div>
+                  <button
+                      type="submit"
+                      disabled={leadStatus === 'loading' || !leadFormData.email || !leadFormData.phone}
+                      className="w-full py-2 text-sm font-semibold bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+                  >
+                      {leadStatus === 'loading' ? 'Submitting...' : 'Connect Me Now'}
+                  </button>
+                  {leadStatus === 'error' && (
+                      <p className='text-xs text-red-500 mt-1 text-center'>Submission failed. Please try the contact form.</p>
+                  )}
+              </form>
+          )}
+
+          {leadStatus === 'success' && (
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-800 text-green-800 dark:text-white text-center">
+                  <p className='text-sm font-semibold'>✅ Success! A specialist will contact you shortly.</p>
+              </div>
+          )}
+
           {/* Input Area */}
           <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 dark:border-gray-700 flex">
             <input
@@ -237,12 +359,12 @@ const Chatbot: React.FC = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              disabled={!connected || userName.trim() === 'Guest'}
+              disabled={isInputDisabled} 
               className="flex-1 p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-l-lg focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             />
             <button
               type="submit"
-              disabled={!connected || input.trim() === '' || userName.trim() === 'Guest'}
+              disabled={isInputDisabled || input.trim() === ''}
               className="p-2 bg-primary text-white rounded-r-lg hover:bg-primary/90 transition-colors disabled:bg-gray-400"
             >
               <Icon icon="lucide:send" width={24} />

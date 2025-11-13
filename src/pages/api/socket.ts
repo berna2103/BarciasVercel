@@ -3,21 +3,19 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Server } from 'socket.io';
 import { GoogleGenAI } from '@google/genai'; 
-// Import existing Firebase Admin SDK for database access
 import { db, admin } from '@/lib/firebase/admin'; 
-// Import Node.js HTTP Server type for correct typing
 import { Server as HttpServer } from 'http'; 
 import type { DefaultEventsMap } from 'socket.io'; 
 
-// --- Configuration Constants ---
-const SPECIALIST_PHONE = '(708) 314-0477'; // Your business phone number
-const BOT_MODEL = "gemini-2.5-flash"; // Fast and capable model
+// --- Configuration Constants (Unchanged) ---
+const SPECIALIST_PHONE = '(708) 314-0477'; 
+const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
+const BOT_MODEL = "gemini-2.5-flash"; 
 const BOT_ID = 'BOT_ID';
 const BOT_NAME = 'Barcias Tech AI Specialist';
 const PROJECT_FOCUS = 'Local Service Lead Generation specializing in Plumbers, Electricians, and Landscapers in Chicago, IL and NW Indiana.';
 
-// --- Initialize AI Client ---
-// Assumes GEMINI_API_KEY is set in your .env.local file
+// --- Initialize AI Client (Unchanged) ---
 const aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 
@@ -30,43 +28,57 @@ type NextApiResponseWithSocket = NextApiResponse & {
   };
 };
 
-// --- Core AI Response Generator ---
-const generateAIResponse = async (userMessage: string) => {
-  
-  // 💡 PROMPT ENGINEERING: Guide the AI to act as a specialist and route critical requests
-  const prompt = `
-    You are the '${BOT_NAME}' for a company focused on generating 40+ qualified leads/jobs per month for local trade professionals (${PROJECT_FOCUS}).
-    Your primary goal is to qualify the lead, answer service-related questions, and emphasize the 30-Day Guaranteed Lead Offer.
+// 💡 FIX: Added 'senderName' to the interface definition
+interface StoredMessage {
+    senderId: string;
+    senderName: string; // <-- THIS WAS MISSING
+    text: string;
+    timestamp: string;
+}
 
-    Rules:
-    1. **If the user asks to book, needs a quote, or requests a meeting:** Do NOT provide an answer. Instead, respond EXACTLY with the following phrase, inserting the phone number: "It sounds like you need a custom quote right away. Please call our lead specialist directly at ${SPECIALIST_PHONE} now, or use our contact form."
-    2. **If the user asks about pricing, packages, or services:** Provide a helpful, concise answer based on the knowledge that our core offer is the "$2,000 Local Pro Lead Engine" which guarantees 40+ qualified jobs/month and includes a website, SEO, and branding.
-    3. **General inquiries:** Be helpful and friendly, reinforcing our expertise in local trade lead generation.
+// --- Core AI Response Generator (Unchanged) ---
+const generateAIResponse = async (history: StoredMessage[]) => {
+    
+  const systemInstruction = `
+    You are '${BOT_NAME}', an AI assistant for a digital marketing company that helps local service businesses (e.g., plumbers, roofers, landscapers) generate 40+ qualified leads per month through the '${PROJECT_FOCUS}' program.
 
-    User Message: "${userMessage}"
+    ### Persona and Goals:
+    1. **Persona:** Conversational, confident, professional, and results-focused.
+    2. **Primary Goal:** Qualify the user (type of business, location) and promote the "$2,000 Local Pro Lead Engine" backed by the 30-Day Guaranteed Lead Offer.
+    3. **First Interaction (if needed):** If the history is empty or contains only a welcome message, start by asking for the user's *email address*.
+
+    ### Rules:
+    1. **Buying Intent (Route to Specialist):** If the user asks to book a call, get a quote, request next steps, or shows clear buying intent, respond ONLY with the exact message: 
+       "${LEAD_QUALIFICATION_TRIGGER} or call us at ${SPECIALIST_PHONE}."
+    2. **Pricing/Package:** If asked about pricing or packages, explain that the core offer is the "$2,000 Local Pro Lead Engine"—a complete system including custom website, SEO, branding, designed to deliver 40+ qualified leads per month, backed by our 30-Day Guarantee. Be concise.
+    3. **General Qs:** Keep answers concise, friendly, and always tie back to results and the 30-Day Guaranteed Lead Offer.
+    4. **Avoid Repetition:** Do not repeat qualifying questions or requests for information (like the email) that the user has already provided in the conversation history. Use the history provided below to maintain context.
   `;
-
+  
+  const geminiContents = history.map(msg => ({
+    role: msg.senderId === BOT_ID ? "model" : "user",
+    parts: [{ text: msg.text }],
+  }));
+  
   try {
     const result = await aiClient.models.generateContent({
         model: BOT_MODEL, 
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        contents: geminiContents,
         config: {
-            temperature: 0.3, 
+            systemInstruction: systemInstruction, 
+            temperature: 0.5, 
         }
     });
 
-    // 💡 FIX: Safely check if result.text exists before using it
     if (result.text) {
         return result.text.trim();
     } else {
-        // Return a default response if the AI provides no text content
         console.warn('Gemini API returned an empty text result.');
         return "I'm sorry, I couldn't generate a text response for that query. Can you please rephrase?";
     }
 
   } catch (error) {
     console.error('Gemini API Error:', error);
-    // Return a message informing the user about the connection error
     return "I'm sorry, I'm experiencing a technical difficulty connecting to the AI. Please try again or use the contact form.";
   }
 };
@@ -82,57 +94,87 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
     });
 
     res.socket.server.io = io;
+  }
 
-    io.on('connection', (socket) => {
-      console.log(`User connected: ${socket.id}`);
+  const io = res.socket.server.io; 
 
-      socket.on('send-message', async (message) => {
-        // --- 1. Persist and Broadcast User Message ---
-        const userChatData = {
+  io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+
+    socket.on('send-message', async (message) => {
+      const CONVERSATION_PATH = `chats/${message.senderId}`;
+
+      // --- 1. Fetch Current Conversation History (Using Admin SDK) ---
+      const docRef = db.collection('chats').doc(message.senderId); 
+      const docSnap = await docRef.get();
+      
+      const data = docSnap.data();
+      const existingHistory: StoredMessage[] = docSnap.exists && data && Array.isArray(data.messages)
+          ? data.messages as StoredMessage[]
+          : [];
+      
+      const currentUserMessage: StoredMessage = {
           senderId: message.senderId,
           senderName: message.senderName || 'Anonymous',
           text: message.text,
-          timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        };
+          timestamp: new Date().toISOString(),
+      };
+      
+      const fullHistory = [...existingHistory, currentUserMessage];
 
-        try {
-          await db.collection('chats').add(userChatData);
-        } catch (error) {
-          console.error('Error saving user message to Firestore:', error);
-        }
-        
-        const userMessageWithTime = { ...message, timestamp: Date.now() };
-        io.emit('receive-message', userMessageWithTime); 
-        
-        // --- 2. Generate and Broadcast AI Response ---
-        const aiResponseText = await generateAIResponse(message.text); 
-        
-        const aiChatData = {
-          senderId: BOT_ID,
-          senderName: BOT_NAME,
-          text: aiResponseText,
-          timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        };
 
-        try {
-          // Persist the AI's response
-          await db.collection('chats').add(aiChatData);
-        } catch (error) {
-          console.error('Error saving AI message to Firestore:', error);
-        }
-        
-        // Broadcast the AI's response (using a delay to simulate typing)
-        setTimeout(() => {
-            const aiMessageWithTime = { ...aiChatData, timestamp: Date.now() };
-            io.emit('receive-message', aiMessageWithTime); 
-        }, 1500); // 1.5 second delay
-      });
+      // --- 2. Persist User Message (Atomic Update: Set/Merge on creation) ---
+      try {
+        await db.doc(CONVERSATION_PATH).set({
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+            senderId: message.senderId,
+            senderName: message.senderName || 'Anonymous',
+            messages: fullHistory, 
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving user message to Firestore:', error);
+      }
+      
+      const userMessageWithTime = { ...message, timestamp: Date.now() };
+      io.emit('receive-message', userMessageWithTime); 
+      
+      // --- 3. Generate and Broadcast AI Response ---
+      const aiResponseText = await generateAIResponse(fullHistory); 
+      
+      const aiMessagePayload: StoredMessage = {
+        senderId: BOT_ID,
+        senderName: BOT_NAME,
+        text: aiResponseText,
+        timestamp: new Date().toISOString(),
+      };
 
-      socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-      });
+      // --- 4. Persist AI Message (Atomic Update) ---
+      const finalHistory = [...fullHistory, aiMessagePayload];
+      try {
+        await db.doc(CONVERSATION_PATH).update({
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+            messages: finalHistory, 
+        });
+      } catch (error) {
+        console.error('Error saving AI message to Firestore:', error);
+      }
+      
+      // Broadcast the AI's response
+      setTimeout(() => {
+          const aiMessageWithTime = { 
+              senderId: BOT_ID, 
+              senderName: BOT_NAME, 
+              text: aiResponseText, 
+              timestamp: Date.now() 
+          };
+          io.emit('receive-message', aiMessageWithTime); 
+      }, 1500); 
     });
-  }
+
+    socket.on('disconnect', () => {
+      console.log(`User disconnected: ${socket.id}`);
+    });
+  });
 
   res.end();
 };
