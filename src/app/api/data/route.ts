@@ -41,7 +41,7 @@ const NavLinkData: NavLinkType[] = [
     href: '/#pricing',
   },
   {
-    label: 'Reviews',
+    label: 'Our Promise',
     href: '/#review',
   },
 ]
@@ -195,7 +195,7 @@ const FooterLinkData: FooterLinkType[] = [
         href: '/#pricing',
       },
       {
-        label: 'Reviews',
+        label: 'Our Promise',
         href: '/#review',
       },
     ],

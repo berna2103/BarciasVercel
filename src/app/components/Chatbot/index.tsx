@@ -21,9 +21,17 @@ interface LeadData {
     phone: string;
 }
 
-const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
 const CHATBOT_NAME = "Barcias Tech AI Specialist";
 const CHATBOT_ID = "BOT_ID";
+
+// FIX: Function to dynamically get the lead qualification trigger based on language
+const getQualificationTrigger = (language: string): string => {
+    // These must exactly match the non-phone-number part of the server-side trigger strings
+    const ENGLISH_TRIGGER = "Please provide your contact information below to connect with a specialist right away:";
+    const SPANISH_TRIGGER = "Porfavor entra tu information, un especialita se conectara contigo inmediatamente:";
+    
+    return language === 'es' ? SPANISH_TRIGGER : ENGLISH_TRIGGER;
+};
 
 // Global socket reference
 let socket: Socket | null = null;
@@ -125,10 +133,11 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       }
   };
 
-  // Function to establish Socket.IO connection (Unchanged)
+  // Function to establish Socket.IO connection
   const setupSocket = useCallback(() => {
     if (socket && socket.connected) return;
 
+    // Use a clean slate socket connection
     socket = io({
       path: '/api/socket',
       addTrailingSlash: false,
@@ -136,48 +145,75 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
 
     socket.on('connect', () => {
       setConnected(true);
+      console.log("Socket Connected.");
     });
 
     socket.on('disconnect', () => {
       setConnected(false);
+      console.log("Socket Disconnected. Attempting to reconnect...");
     });
 
+    // CRITICAL FIX: Add all received messages to the state
     socket.on('receive-message', (message: any) => {
-      if (message.senderId === CHATBOT_ID && message.text.includes(LEAD_QUALIFICATION_TRIGGER)) {
-          setShowLeadForm(true);
-      }
+        console.log("Received message from server:", message);
+        
+        // 1. Add the received message to the messages state
+        setMessages(prevMessages => {
+            const newMessage: ChatMessage = {
+                id: Math.random().toString(36).substring(2, 9), // Use a random ID for client rendering key
+                senderId: message.senderId,
+                senderName: message.senderName,
+                text: message.text,
+                // Server sends Date.now() (number timestamp)
+                timestamp: new Date(message.timestamp), 
+            };
+            return [...prevMessages, newMessage];
+        });
+
+        // 2. Check for Lead Trigger using the current language
+        const currentTrigger = getQualificationTrigger(lang);
+        if (message.senderId === CHATBOT_ID && message.text.includes(currentTrigger)) {
+            setShowLeadForm(true);
+        }
     });
-  }, []);
+  }, [lang]); // Dependency added to re-create callback if lang changes
 
   // Effect for fetching chat history (Single Document Read)
   useEffect(() => {
     if (!isChatOpen || !currentUserId || userName === '') return; 
 
+    // Setup socket connection when chat opens
     setupSocket();
 
     const docRef = doc(db, 'chats', currentUserId);
     
-    let unsubscribe; 
+    let unsubscribe: (() => void) | undefined; 
 
+    // Listen to Firebase for history updates (only when chat is open)
     unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // 💡 FIX: Explicitly define the message object shape to include senderId
-        const history: { senderId: string, senderName: string, text: string, timestamp: string }[] = data.messages || [];
+        // Use the proper type definition for Firestore array items
+        const history: { senderId: string, senderName: string, text: string, timestamp: { toDate: () => Date } | string }[] = data.messages || [];
         
         const processedMessages: ChatMessage[] = history.map((msg, index) => ({
             id: index.toString(),
-            senderId: msg.senderId, // Now correctly defined
+            senderId: msg.senderId, 
             senderName: msg.senderName,
             text: msg.text,
-            timestamp: new Date(msg.timestamp), 
+            // FIX: Ensure the new Date() constructor only receives a string or a Date object
+            timestamp: (typeof msg.timestamp !== 'string' && msg.timestamp?.toDate) 
+                        ? msg.timestamp.toDate() 
+                        : new Date(msg.timestamp as string), 
         }));
         
         setMessages(processedMessages);
         
+        // FIX: Check for Lead Trigger using the current language from the prop
+        const currentTrigger = getQualificationTrigger(lang);
         const lastBotMessage = processedMessages.slice().reverse().find(m => m.senderId === CHATBOT_ID);
-        if (lastBotMessage && lastBotMessage.text.includes(LEAD_QUALIFICATION_TRIGGER)) {
+        if (lastBotMessage && lastBotMessage.text.includes(currentTrigger)) {
             setShowLeadForm(true);
         } else {
              setShowLeadForm(false);
@@ -185,6 +221,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
         }
 
       } else {
+        // Initialize chat with a welcome message if no history exists
         if (messages.length === 0 || messages[0].senderId !== CHATBOT_ID) {
             setMessages([{ 
                 id: 'init-bot', 
@@ -198,7 +235,9 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
     });
 
     return () => {
-        unsubscribe(); 
+        if (unsubscribe) {
+            unsubscribe(); 
+        }
         if (socket) {
             socket.disconnect(); 
             socket = null;
@@ -229,8 +268,12 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       lang: lang, // Pass the current language
     };
 
+    // 1. Emit the message to the server
     socket.emit('send-message', messagePayload);
     setInput('');
+    
+    // NOTE: The message will appear in the UI when the server echoes it back 
+    // via 'receive-message' (or when Firebase updates the history). 
   };
 
   // --- UI Rendering (Unchanged) ---
@@ -249,6 +292,9 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       if (leadStatus === 'loading') return lang === 'es' ? 'Enviando...' : 'Submitting...';
       return lang === 'es' ? 'Conectar Ahora' : 'Connect Me Now';
   }
+  
+  // FIX: Use the localized trigger text for the prompt
+  const localizedTriggerText = getQualificationTrigger(lang).replace(':', '');
 
   return (
     <>
@@ -308,7 +354,8 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
           {showLeadForm && leadStatus !== 'success' && (
               <form onSubmit={submitLead} className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-darkmode">
                   <p className="text-xs font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                      {LEAD_QUALIFICATION_TRIGGER.replace(':', '')}
+                      {/* FIX: Use the localized trigger text for the form prompt */}
+                      {localizedTriggerText}
                   </p>
                   <div className="flex flex-col gap-2 mb-2">
                       <input
