@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   eslint:{
     ignoreDuringBuilds: true
   },
+
+  
   // Removed unsupported i18n configuration for App Router
 }
 

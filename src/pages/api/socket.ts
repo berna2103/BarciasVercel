@@ -6,8 +6,9 @@ import { GoogleGenAI } from '@google/genai';
 import { db, admin } from '@/lib/firebase/admin'; 
 import { Server as HttpServer } from 'http'; 
 import type { DefaultEventsMap } from 'socket.io'; 
+import { doc, getDoc } from 'firebase/firestore'; // Used for type reference consistency
 
-// --- Configuration Constants (Unchanged) ---
+// --- Configuration Constants ---
 const SPECIALIST_PHONE = '(708) 314-0477'; 
 const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
 const BOT_MODEL = "gemini-2.5-flash"; 
@@ -15,9 +16,8 @@ const BOT_ID = 'BOT_ID';
 const BOT_NAME = 'Barcias Tech AI Specialist';
 const PROJECT_FOCUS = 'Local Service Lead Generation specializing in Plumbers, Electricians, and Landscapers in Chicago, IL and NW Indiana.';
 
-// --- Initialize AI Client (Unchanged) ---
+// --- Initialize AI Client ---
 const aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 
 // --- Custom Type Definitions ---
 type NextApiResponseWithSocket = NextApiResponse & {
@@ -28,24 +28,32 @@ type NextApiResponseWithSocket = NextApiResponse & {
   };
 };
 
-// 💡 FIX: Added 'senderName' to the interface definition
 interface StoredMessage {
     senderId: string;
-    senderName: string; // <-- THIS WAS MISSING
+    senderName: string;
     text: string;
     timestamp: string;
+    // 💡 NEW: Include lang in the stored message type
+    lang?: string; 
 }
 
-// --- Core AI Response Generator (Unchanged) ---
-const generateAIResponse = async (history: StoredMessage[]) => {
+
+// --- Core AI Response Generator (Update signature to accept language) ---
+const generateAIResponse = async (history: StoredMessage[], lang: string) => { 
     
+  // 💡 NEW INSTRUCTION: Tell the model to respond in the target language
+  const languageInstruction = lang === 'es' 
+    ? "Responde SIEMPRE en español. Mantén el tono profesional y conciso."
+    : "Always respond in English. Maintain a professional and concise tone.";
+
   const systemInstruction = `
+    ${languageInstruction}
+
     You are '${BOT_NAME}', an AI assistant for a digital marketing company that helps local service businesses (e.g., plumbers, roofers, landscapers) generate 40+ qualified leads per month through the '${PROJECT_FOCUS}' program.
 
     ### Persona and Goals:
     1. **Persona:** Conversational, confident, professional, and results-focused.
     2. **Primary Goal:** Qualify the user (type of business, location) and promote the "$2,000 Local Pro Lead Engine" backed by the 30-Day Guaranteed Lead Offer.
-    3. **First Interaction (if needed):** If the history is empty or contains only a welcome message, start by asking for the user's *email address*.
 
     ### Rules:
     1. **Buying Intent (Route to Specialist):** If the user asks to book a call, get a quote, request next steps, or shows clear buying intent, respond ONLY with the exact message: 
@@ -55,6 +63,7 @@ const generateAIResponse = async (history: StoredMessage[]) => {
     4. **Avoid Repetition:** Do not repeat qualifying questions or requests for information (like the email) that the user has already provided in the conversation history. Use the history provided below to maintain context.
   `;
   
+  // Convert chat history into the Gemini Contents format
   const geminiContents = history.map(msg => ({
     role: msg.senderId === BOT_ID ? "model" : "user",
     parts: [{ text: msg.text }],
@@ -74,12 +83,16 @@ const generateAIResponse = async (history: StoredMessage[]) => {
         return result.text.trim();
     } else {
         console.warn('Gemini API returned an empty text result.');
-        return "I'm sorry, I couldn't generate a text response for that query. Can you please rephrase?";
+        return lang === 'es' 
+            ? "Lo siento, no pude generar una respuesta para esa consulta. ¿Puedes reformular?" 
+            : "I'm sorry, I couldn't generate a text response for that query. Can you please rephrase?";
     }
 
   } catch (error) {
     console.error('Gemini API Error:', error);
-    return "I'm sorry, I'm experiencing a technical difficulty connecting to the AI. Please try again or use the contact form.";
+    return lang === 'es' 
+        ? "Lo siento, estoy experimentando una dificultad técnica."
+        : "I'm sorry, I'm experiencing a technical difficulty.";
   }
 };
 
@@ -101,7 +114,9 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    socket.on('send-message', async (message) => {
+    // 💡 MODIFIED: Expect the 'lang' property in the message payload
+    socket.on('send-message', async (message: StoredMessage & { lang: string }) => {
+      const { lang } = message; 
       const CONVERSATION_PATH = `chats/${message.senderId}`;
 
       // --- 1. Fetch Current Conversation History (Using Admin SDK) ---
@@ -118,12 +133,13 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
           senderName: message.senderName || 'Anonymous',
           text: message.text,
           timestamp: new Date().toISOString(),
+          lang: lang, // 💡 NEW: Store language used in this message
       };
       
       const fullHistory = [...existingHistory, currentUserMessage];
 
 
-      // --- 2. Persist User Message (Atomic Update: Set/Merge on creation) ---
+      // --- 2. Persist User Message (Atomic Update) ---
       try {
         await db.doc(CONVERSATION_PATH).set({
             lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
@@ -139,13 +155,15 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
       io.emit('receive-message', userMessageWithTime); 
       
       // --- 3. Generate and Broadcast AI Response ---
-      const aiResponseText = await generateAIResponse(fullHistory); 
+      // 💡 FIX: Pass the language code to the AI generator
+      const aiResponseText = await generateAIResponse(fullHistory, lang); 
       
       const aiMessagePayload: StoredMessage = {
         senderId: BOT_ID,
         senderName: BOT_NAME,
         text: aiResponseText,
         timestamp: new Date().toISOString(),
+        lang: lang,
       };
 
       // --- 4. Persist AI Message (Atomic Update) ---

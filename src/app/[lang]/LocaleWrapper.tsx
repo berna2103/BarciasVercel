@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import ScrollToTop from '../components/ScrollToTop';
-import Chatbot from '../components/Chatbot'; // <-- Import the new Chatbot component
+import Chatbot from '../components/Chatbot'; 
 
 // Define the component props
 interface LocaleWrapperProps {
@@ -15,17 +15,21 @@ interface LocaleWrapperProps {
   lang: string;
 }
 
+/**
+ * Client-side component to wrap the UI structure (Header, ThemeProvider, Footer)
+ */
 const LocaleWrapper: React.FC<LocaleWrapperProps> = ({ children, lang }) => {
   return (
     <ThemeProvider
         attribute='class'
         enableSystem={false}
         defaultTheme='light'>
+        {/* Pass the lang prop to Header for correct linking */}
         <Header lang={lang} /> 
         {children}
         <Footer />
-        {/* Add the Chatbot component here */}
-        <Chatbot /> 
+        {/* 💡 FIX: Pass the active language to the Chatbot */}
+        <Chatbot lang={lang} /> 
         {/* <ScrollToTop /> */}
     </ThemeProvider>
   );

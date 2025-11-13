@@ -21,9 +21,8 @@ interface LeadData {
     phone: string;
 }
 
-// NOTE: This phrase MUST match the one defined in pages/api/socket.ts
 const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
-const CHATBOT_NAME = "Barcias Tech Bot";
+const CHATBOT_NAME = "Barcias Tech AI Specialist";
 const CHATBOT_ID = "BOT_ID";
 
 // Global socket reference
@@ -31,8 +30,9 @@ let socket: Socket | null = null;
 
 
 // --- Chatbot Component ---
-const Chatbot: React.FC = () => {
-  // FIX 1: Initialize ID and Name states to null/empty string to defer localStorage access
+// 💡 MODIFIED: Accept lang prop
+const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
+  // SSR Fix
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>(''); 
   
@@ -46,11 +46,10 @@ const Chatbot: React.FC = () => {
   const [leadFormData, setLeadFormData] = useState<LeadData>({ email: '', phone: '' });
   const [leadStatus, setLeadStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // FIX 2: Client-side initialization for localStorage (SSR Fix)
+  // Client-side initialization for localStorage (SSR Fix)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Initialize ID
     const storedId = localStorage.getItem('chat-user-id');
     let userId = storedId;
     if (!userId) {
@@ -59,7 +58,6 @@ const Chatbot: React.FC = () => {
     }
     setCurrentUserId(userId);
     
-    // Initialize Name (This is the name shown in the welcome message)
     const storedName = localStorage.getItem('chat-user-name') || 'Guest';
     setUserName(storedName);
 
@@ -67,19 +65,17 @@ const Chatbot: React.FC = () => {
 
   // --- UX Fix: Name Change Handler ---
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      // Set state with the exact input value
       setUserName(e.target.value);
   };
   
   // Persist name on blur, enforcing a default if empty (UX Fix)
   const handleNameBlur = () => {
-      // This runs when the user tabs out or clicks away
       const finalName = userName.trim() || 'Guest';
       setUserName(finalName);
       localStorage.setItem('chat-user-name', finalName);
   }
   
-  // --- Lead Form Handlers (Unchanged for brevity) ---
+  // --- Lead Form Handlers (Unchanged) ---
   const handleLeadFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setLeadFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -108,10 +104,17 @@ const Chatbot: React.FC = () => {
 
           if (res.ok) {
               setLeadStatus('success');
+              
+              setTimeout(() => {
+                  setShowLeadForm(false); 
+                  setLeadStatus('idle');   
+              }, 3000); 
+
               socket?.emit('send-message', {
                   senderId: currentUserId,
                   senderName: userName,
                   text: "I've successfully submitted my contact details. Waiting for your specialist!",
+                  lang: lang, // Pass language to log in Firestore
               });
           } else {
               setLeadStatus('error');
@@ -122,7 +125,7 @@ const Chatbot: React.FC = () => {
       }
   };
 
-  // Function to establish Socket.IO connection
+  // Function to establish Socket.IO connection (Unchanged)
   const setupSocket = useCallback(() => {
     if (socket && socket.connected) return;
 
@@ -155,10 +158,8 @@ const Chatbot: React.FC = () => {
 
     const docRef = doc(db, 'chats', currentUserId);
     
-    // 💡 FIX 4: Initialize unsubscribe variable here
     let unsubscribe; 
 
-    // Assign the result of onSnapshot to the unsubscribe variable
     unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -189,7 +190,8 @@ const Chatbot: React.FC = () => {
                 id: 'init-bot', 
                 senderId: CHATBOT_ID, 
                 senderName: CHATBOT_NAME, 
-                text: `Hi ${userName || 'Guest'}, how can I help you get more qualified leads today?`, 
+                // 💡 FIX: Use localized greeting based on prop
+                text: lang === 'es' ? `Hola ${userName || 'Invitado'}, ¿en qué puedo ayudarte hoy?` : `Hi ${userName || 'Guest'}, how can I help you get more qualified leads today?`, 
                 timestamp: new Date() 
             }]);
         }
@@ -197,16 +199,15 @@ const Chatbot: React.FC = () => {
     });
 
     return () => {
-        // 💡 FIX 5: Call the locally scoped unsubscribe variable
         unsubscribe(); 
         if (socket) {
             socket.disconnect(); 
             socket = null;
         }
     };
-  }, [isChatOpen, setupSocket, userName, currentUserId]); 
+  }, [isChatOpen, setupSocket, userName, currentUserId, lang]); // Add lang dependency
 
-  // Effect to scroll to the bottom of the chat window
+  // Effect to scroll to the bottom of the chat window (Unchanged)
   useEffect(() => {
     if (isChatOpen) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -226,6 +227,8 @@ const Chatbot: React.FC = () => {
       senderId: currentUserId, 
       senderName: userName,
       text: text,
+      // 💡 FIX: Pass the current language to the server
+      lang: lang, 
     };
 
     socket.emit('send-message', messagePayload);
@@ -234,7 +237,6 @@ const Chatbot: React.FC = () => {
 
   // --- UI Rendering ---
 
-  // Render nothing until ID/Name are initialized to prevent flicker/errors
   if (!currentUserId) {
     return null;
   }
@@ -244,11 +246,15 @@ const Chatbot: React.FC = () => {
       ? 'self-end bg-primary text-white rounded-br-none' 
       : 'self-start bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none';
       
-  const isInputDisabled = !connected || userName.trim() === 'Guest' || showLeadForm || leadStatus === 'success';
+  const isInputDisabled = !connected || userName.trim() === 'Guest' || leadStatus === 'loading'; 
+
+  const getFormSubmitText = () => {
+      if (leadStatus === 'loading') return lang === 'es' ? 'Enviando...' : 'Submitting...';
+      return lang === 'es' ? 'Conectar Ahora' : 'Connect Me Now';
+  }
 
   return (
     <>
-      {/* Chat Bubble Toggle Button */}
       <button
         onClick={() => setIsChatOpen(!isChatOpen)}
         className="fixed bottom-4 right-4 z-[99] p-4 bg-primary text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
@@ -256,36 +262,31 @@ const Chatbot: React.FC = () => {
         <Icon icon={isChatOpen ? 'lucide:x' : 'lucide:message-circle'} width={24} />
       </button>
 
-      {/* Chat Window */}
       {isChatOpen && (
         <div className="fixed bottom-20 right-4 w-full max-w-sm h-[450px] bg-white dark:bg-darklight rounded-lg shadow-2xl z-50 flex flex-col transition-all duration-300 border border-gray-200 dark:border-gray-700">
           
-          {/* Header */}
           <div className="p-4 bg-primary text-white rounded-t-lg flex justify-between items-center">
-            <h5 className="font-semibold capitalize">Live Chat with {CHATBOT_NAME}</h5>
+            <h5 className="font-semibold capitalize">{lang === 'es' ? 'Chat en Vivo' : 'Live Chat'} with {CHATBOT_NAME}</h5>
             <span 
               className={`w-3 h-3 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} 
               title={connected ? 'Connected' : 'Connecting...'}
             />
           </div>
 
-          {/* User Input Name Field */}
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
             <input
                 type="text"
                 value={userName === 'Guest' ? '' : userName} 
                 onChange={handleNameChange}
                 onBlur={handleNameBlur} 
-                placeholder="Enter your name (Required)" 
+                placeholder={lang === 'es' ? 'Ingrese su nombre (Obligatorio)' : 'Enter your name (Required)'} 
                 className="w-full text-sm px-2 py-1 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-primary"
             />
-            {/* Show warning if input is empty or defaults to 'Guest' */}
             {(userName.trim() === 'Guest' || userName.trim() === '') && (
-                <p className='text-xs text-red-500 mt-1'>Please enter a name other than "Guest" to chat.</p>
+                <p className='text-xs text-red-500 mt-1'>{lang === 'es' ? 'Por favor, ingrese un nombre.' : 'Please enter a valid name.'}</p>
             )}
           </div>
 
-          {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 text-sm">
             {messages.map((msg, index) => (
               <div 
@@ -318,7 +319,7 @@ const Chatbot: React.FC = () => {
                           name="email"
                           value={leadFormData.email}
                           onChange={handleLeadFormChange}
-                          placeholder="Email Address"
+                          placeholder={lang === 'es' ? 'Correo electrónico' : 'Email Address'}
                           required
                           className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                           disabled={leadStatus === 'loading'}
@@ -328,7 +329,7 @@ const Chatbot: React.FC = () => {
                           name="phone"
                           value={leadFormData.phone}
                           onChange={handleLeadFormChange}
-                          placeholder="Phone Number (123-456-7890)"
+                          placeholder={lang === 'es' ? 'Número de teléfono (123-456-7890)' : 'Phone Number (123-456-7890)'}
                           className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                           disabled={leadStatus === 'loading'}
                       />
@@ -338,37 +339,41 @@ const Chatbot: React.FC = () => {
                       disabled={leadStatus === 'loading' || !leadFormData.email || !leadFormData.phone}
                       className="w-full py-2 text-sm font-semibold bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
                   >
-                      {leadStatus === 'loading' ? 'Submitting...' : 'Connect Me Now'}
+                      {getFormSubmitText()}
                   </button>
                   {leadStatus === 'error' && (
-                      <p className='text-xs text-red-500 mt-1 text-center'>Submission failed. Please try the contact form.</p>
+                      <p className='text-xs text-red-500 mt-1 text-center'>{lang === 'es' ? 'Envío fallido. Por favor, utilice el formulario de contacto.' : 'Submission failed. Please try the contact form.'}</p>
                   )}
               </form>
           )}
 
           {leadStatus === 'success' && (
               <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-800 text-green-800 dark:text-white text-center">
-                  <p className='text-sm font-semibold'>✅ Success! A specialist will contact you shortly.</p>
+                  <p className='text-sm font-semibold'>{lang === 'es' ? '✅ ¡Éxito! Un especialista te contactará pronto.' : '✅ Success! A specialist will contact you shortly.'}</p>
               </div>
           )}
 
           {/* Input Area */}
           <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 dark:border-gray-700 flex">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isInputDisabled} 
-              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-l-lg focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={isInputDisabled || input.trim() === ''}
-              className="p-2 bg-primary text-white rounded-r-lg hover:bg-primary/90 transition-colors disabled:bg-gray-400"
-            >
-              <Icon icon="lucide:send" width={24} />
-            </button>
+            {!showLeadForm && leadStatus !== 'success' ? (
+                <>
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder={lang === 'es' ? 'Escribe tu mensaje...' : 'Type your message...'}
+                      disabled={isInputDisabled} 
+                      className="flex-1 p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-l-lg focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isInputDisabled || input.trim() === ''}
+                      className="p-2 bg-primary text-white rounded-r-lg hover:bg-primary/90 transition-colors disabled:bg-gray-400"
+                    >
+                      <Icon icon="lucide:send" width={24} />
+                    </button>
+                </>
+            ) : null}
           </form>
         </div>
       )}

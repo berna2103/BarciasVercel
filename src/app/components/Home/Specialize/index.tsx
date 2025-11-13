@@ -38,18 +38,18 @@ const Specialize: React.FC<SpecializeProps> = ({ dict }) => {
               ))
             : specialization.map((item, i) => (
                 <div key={i}>
-                  <div className='bg-secondary dark:bg-darklight rounded-lg p-8'>
+                  <div className='bg-secondary dark:bg-darklight items-center rounded-lg p-8 h-72'>
                     <div className='p-3 rounded-lg bg-primary w-fit mb-8 shadow-lg shadow-primary/30'>
                       <Image
                         src={getFixedPath(item.imgSrc)}
                         alt={item.title}
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                       />
                     </div>
                     <div>
                       <h5 className='font-bold mb-2'>{item.title}</h5>
-                      <p className='text-base font-normal max-w-xs'>
+                      <p className='font-normal'>
                         {item.desc}
                       </p>
                     </div>
