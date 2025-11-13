@@ -37,8 +37,7 @@ interface StoredMessage {
     senderId: string;
     senderName: string;
     text: string;
-    // We use 'any' here as it will be serverTimestamp in Firestore, 
-    // but a string/number in the fetched history.
+    // We use 'any' here as it can be a Firestore Timestamp object or a string/number
     timestamp: any; 
     lang: string; 
 }
@@ -71,6 +70,7 @@ const generateAIResponse = async (history: StoredMessage[], lang: string) => {
     4. **General Qs:** Keep answers brief.
   `;
   
+  // NOTE: history timestamps must be clean strings for the Gemini API call to succeed.
   const geminiContents = history.map(msg => ({
     role: msg.senderId === BOT_ID ? "model" : "user",
     parts: [{ text: msg.text }],
@@ -125,26 +125,25 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
     socket.on('send-message', async (message: StoredMessage & { lang: string }) => {
       const { lang } = message; 
       const CONVERSATION_PATH = `chats/${message.senderId}`;
+      const docRef = db.collection('chats').doc(message.senderId); 
 
       // --- 1. Fetch Current Conversation History ---
-      const docRef = db.collection('chats').doc(message.senderId); 
       const docSnap = await docRef.get();
-      
-      const data = docSnap.data();
-      const rawHistory: any[] = docSnap.exists && data && Array.isArray(data.messages)
-          ? data.messages
+      const rawHistory: any[] = docSnap.exists && docSnap.data() && Array.isArray(docSnap.data()?.messages)
+          ? docSnap.data()!.messages
           : [];
       
-      // Sanitize history for Gemini input
+      // FIX 1: Sanitize existing history for Gemini (converting Firestore Timestamps to strings)
       const existingHistory: StoredMessage[] = rawHistory.map((msg: any) => ({
           senderId: msg.senderId || BOT_ID,
           senderName: msg.senderName || BOT_NAME,
           text: msg.text || '',
-          timestamp: msg.timestamp,
+          // Convert Firestore Timestamp object to ISO string
+          timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate().toISOString() : new Date().toISOString(), 
           lang: msg.lang || 'en', 
       })); 
       
-      // Explicitly construct current user message
+      // --- 2. Construct Messages for DB and AI ---
       const currentUserMessageForDB = {
           senderId: message.senderId,
           senderName: message.senderName || 'Anonymous',
@@ -154,12 +153,12 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
           lang: lang || 'en', 
       };
       
-      // Construct history for Gemini (uses non-DB user message)
+      // Use a clean version for AI history (must have string timestamp)
       const currentUserMessageForAI = { ...currentUserMessageForDB, timestamp: new Date().toISOString() };
       const fullHistoryForAI = [...existingHistory, currentUserMessageForAI];
 
 
-      // --- 2. Persist User Message (Atomic Update using arrayUnion) ---
+      // --- 3. Persist User Message & Broadcast (Atomic Update) ---
       try {
         await docRef.set({
             lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
@@ -168,14 +167,20 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
             messages: admin.firestore.FieldValue.arrayUnion(currentUserMessageForDB), // Append user message
         }, { merge: true });
         
-        // Broadcast the user's message immediately after saving
-        io.emit('receive-message', { ...message, timestamp: Date.now() }); 
+        // FIX 2: Broadcast the user's message immediately with client-friendly data
+        const userMessageForClient = {
+            senderId: message.senderId,
+            senderName: message.senderName || 'Anonymous',
+            text: message.text,
+            timestamp: Date.now() // Use client-friendly timestamp
+        };
+        io.emit('receive-message', userMessageForClient); 
 
       } catch (error) {
         console.error('Error saving user message to Firestore:', error);
       }
       
-      // --- 3. Generate AI Response ---
+      // --- 4. Generate AI Response ---
       const aiResponseText = await generateAIResponse(fullHistoryForAI, lang); 
       
       const aiMessagePayloadForDB = {
@@ -187,24 +192,25 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
         lang: lang || 'en', 
       };
 
-      // --- 4. Persist AI Message (Atomic Update using arrayUnion) ---
+      // --- 5. Persist AI Message & Broadcast (Atomic Update) ---
       try {
         await docRef.update({
             lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
             messages: admin.firestore.FieldValue.arrayUnion(aiMessagePayloadForDB), // Append AI message
         });
+        
+        // Broadcast the AI's response immediately
+        const aiMessageWithTime = { 
+            senderId: BOT_ID, 
+            senderName: BOT_NAME, 
+            text: aiResponseText, 
+            timestamp: Date.now() // Use client-friendly time for broadcasting
+        };
+        io.emit('receive-message', aiMessageWithTime); 
+        
       } catch (error) {
         console.error('Error saving AI message to Firestore:', error);
       }
-      
-      // Broadcast the AI's response immediately
-      const aiMessageWithTime = { 
-          senderId: BOT_ID, 
-          senderName: BOT_NAME, 
-          text: aiResponseText, 
-          timestamp: Date.now() // Use client-friendly time for broadcasting
-      };
-      io.emit('receive-message', aiMessageWithTime); 
     });
 
     socket.on('disconnect', () => {
