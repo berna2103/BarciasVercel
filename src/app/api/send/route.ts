@@ -4,22 +4,14 @@ import { Resend } from 'resend';
 import { NextResponse, NextRequest } from 'next/server';
 // Import Admin SDK instance and the admin object for FieldValue
 import { db, admin } from '@/lib/firebase/admin'; 
-// REMOVED: import { MessagingClient } from '@telesign/messaging'; 
+import { Buffer } from 'buffer'; 
 
 // Initialize Resend. This automatically uses the RESEND_API_KEY environment variable.
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// --- NEW: Direct TeleSign Fetch Utility ---
-/**
- * Sends an SMS message directly to the TeleSign API using fetch.
- * This is the recommended approach for serverless environments (Vercel).
- * @param phoneNumber The recipient phone number (E.164 format).
- * @param message The SMS body text.
- * @param messageType TeleSign message type (e.g., 'ARN' for alerts/notifications).
- */
+// --- TeleSign Direct Fetch Utility (Vercel Compatible) ---
 async function sendTeleSignSMS(phoneNumber: string, message: string, messageType: "ARN" | "OTP" | "MKT" = "ARN") {
     
-    // Check if required global Node APIs are available (they are in Next.js API routes)
     if (typeof Buffer === 'undefined' || typeof URLSearchParams === 'undefined') {
         console.error("TeleSign Error: Missing required Node.js APIs (Buffer, URLSearchParams).");
         return;
@@ -35,29 +27,15 @@ async function sendTeleSignSMS(phoneNumber: string, message: string, messageType
     }
 
     try {
-        // 1. Create the Basic Auth Header (Base64 encoding of 'CUSTOMER_ID:API_KEY')
         const authString = Buffer.from(`${customerId}:${apiKey}`).toString('base64');
-        
-        // 2. Define the API endpoint and payload (Form URL Encoded)
         const apiUrl = 'https://rest-api.telesign.com/v1/messaging';
         
         const payload = new URLSearchParams();
         payload.append('phone_number', phoneNumber);
         payload.append('message', message);
         payload.append('message_type', messageType);
-        // Note: TeleSign requires a `sender_id` (your verified sending number) or similar parameter, 
-        // depending on your account setup. We use the recommended 'sender_id'.
         payload.append('sender_id', senderNumber); 
 
-
-        // --- DIAGNOSTIC LOGGING ---
-        console.log("--- TeleSign Diagnostics ---");
-        console.log(`Sending to number (E.164): ${phoneNumber}`);
-        console.log(`Authorization Header: Basic ${authString.substring(0, 10)}...[truncated]`);
-        console.log("----------------------------");
-        // --- END DIAGNOSTIC LOGGING ---
-
-        // 3. Execute the fetch request
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -78,31 +56,67 @@ async function sendTeleSignSMS(phoneNumber: string, message: string, messageType
         console.error('TeleSign SMS network/system error:', error);
     }
 }
-// --- END TeleSign Fetch Utility ---
+// --- END TeleSign Direct Fetch Utility ---
+
+
+// --- Function to Fetch and Format Transcript (Admin SDK) ---
+async function fetchTranscript(chatId: string): Promise<string> {
+    if (!chatId) return "No chat ID provided.";
+
+    try {
+        const chatDocRef = db.collection('chats').doc(chatId);
+        const docSnap = await chatDocRef.get();
+
+        if (docSnap.exists) {
+            const data = docSnap.data(); // This can be undefined
+            
+            // 💡 FIX: Safely check if data is defined and messages is an array
+            const history: { senderName: string; text: string; timestamp: string; lang: string }[] = 
+                (data && Array.isArray(data.messages)) ? data.messages : [];
+
+            if (history.length === 0) return "Chat transcript is empty.";
+
+            // Format the transcript for readability in HTML <pre> tag
+            return history.map(msg => {
+                const date = new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                return `[${date}] ${msg.senderName}: ${msg.text}`;
+            }).join('\n');
+        }
+        return "Chat transcript document not found in Firestore.";
+    } catch (e) {
+        console.error("Error fetching chat transcript:", e);
+        return "Error fetching chat transcript due to server error.";
+    }
+}
+// --- END Transcript Fetch Utility ---
 
 
 // Define the POST handler function for the /api/send route
 export async function POST(request: NextRequest) {
   if (!process.env.RESEND_API_KEY) {
-      console.error("Missing required API key (Resend).");
-      return NextResponse.json({ message: 'Email service misconfigured.' }, { status: 500 });
+      console.error("RESEND_API_KEY is not set.");
+      return NextResponse.json({ message: 'Email service misconfigured: Missing API Key.' }, { status: 500 });
   }
 
   const notificationNumber = process.env.NOTIFICATION_PHONE_NUMBER;
-  if (!notificationNumber) {
-       console.warn('NOTIFICATION_PHONE_NUMBER is missing. SMS alerts will be skipped.');
-  }
 
   try {
-    const { Email, Name, PhoneNo, ServiceType, Description, BusinessName } = await request.json(); 
+    const { Email, Name, PhoneNo, ServiceType, Description, BusinessName, ChatSenderId } = await request.json(); 
 
+    // Validation
     if (!Email || !Name || !PhoneNo || !ServiceType || !Description || !BusinessName) { 
         return NextResponse.json({ message: 'Missing required form fields.' }, { status: 400 });
     }
     
     const cleanedPhoneNo = PhoneNo.replace(/\D/g, ''); 
 
-    // 1. Prepare data payload
+    // --- Fetch the Transcript (if ID is provided) ---
+    let transcript = '';
+    if (ChatSenderId) {
+        transcript = await fetchTranscript(ChatSenderId);
+    }
+
+    // 1. Prepare data payload (for Firestore save)
     const leadData = {
         name: Name,
         businessName: BusinessName,
@@ -110,6 +124,7 @@ export async function POST(request: NextRequest) {
         phoneNo: cleanedPhoneNo, 
         serviceType: ServiceType,
         description: Description,
+        chatSenderId: ChatSenderId, // Save the ID for reference
         timestamp: admin.firestore.FieldValue.serverTimestamp(), 
     };
     
@@ -123,37 +138,34 @@ export async function POST(request: NextRequest) {
         console.error('Error adding document to Firestore (non-fatal):', firestoreError);
     }
 
-    // 3. Send the email using Resend 
+    // 3. Send the email using Resend (to site owner)
     const { error } = await resend.emails.send({
       from: 'Contact Form <onboarding@barciastech.com>', 
       to: ['bernardojimenezz@gmail.com'], 
-      subject: `New Lead: ${ServiceType} from ${Name} (${BusinessName})`, 
+      subject: `🔥 NEW CHAT LEAD (${ServiceType}) from ${BusinessName || Name}`, 
+      
+      // IMPROVED HTML BODY: Includes chat transcript
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="color: #333;">New Contact Form Submission (Lead ID: ${docId})</h2>
+          <h2 style="color: #CC0000; font-weight: bold;">NEW QUALIFIED LEAD (Chatbot Submission)</h2>
           <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Name:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${Name}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Business Name:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${BusinessName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${Email}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Phone:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${PhoneNo}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Business:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${BusinessName}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Service Type:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${ServiceType}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Phone:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${PhoneNo}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${Email}</td></tr>
             <tr><td style="padding: 8px; font-weight: bold;">Description:</td><td style="padding: 8px;">${Description}</td></tr>
           </table>
+          
+          <h3 style="margin-top: 25px; color: #333;">Full Chat Transcript:</h3>
+          <pre style="background-color: #f8f8f8; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-family: monospace; font-size: 13px; border: 1px solid #ddd;">${transcript}</pre>
         </div>
       `,
     });
 
     // 4. Send SMS Notification via direct TeleSign Fetch
     if (notificationNumber) {
-        const smsText = `NEW LEAD (Chatbot Qualified)! 
-Name: ${Name}
-Service: ${ServiceType}
-Phone: ${PhoneNo}
-Email: ${Email}
-Follow up ASAP!`;
-        
-        // Use the new fetch utility
-        // The message type "ARN" (Alerts, Reminders, Notifications) is appropriate here.
+        const smsText = `🔥 CHAT LEAD: ${Name} from ${BusinessName || ServiceType} converted! Phone: ${PhoneNo}. Check Resend email for transcript.`;
         await sendTeleSignSMS(notificationNumber, smsText, "ARN");
     } 
 

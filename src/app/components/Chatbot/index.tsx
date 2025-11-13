@@ -30,7 +30,6 @@ let socket: Socket | null = null;
 
 
 // --- Chatbot Component ---
-// 💡 MODIFIED: Accept lang prop
 const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
   // SSR Fix
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -93,6 +92,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
           BusinessName: 'Chat Lead', 
           ServiceType: 'Chat Qualified Lead',
           Description: 'Lead captured via Chatbot qualification form.',
+          ChatSenderId: currentUserId, 
       };
 
       try {
@@ -114,7 +114,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
                   senderId: currentUserId,
                   senderName: userName,
                   text: "I've successfully submitted my contact details. Waiting for your specialist!",
-                  lang: lang, // Pass language to log in Firestore
+                  lang: lang,
               });
           } else {
               setLeadStatus('error');
@@ -151,7 +151,6 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
 
   // Effect for fetching chat history (Single Document Read)
   useEffect(() => {
-    // Wait for currentUserId to be set before fetching data/setting up socket
     if (!isChatOpen || !currentUserId || userName === '') return; 
 
     setupSocket();
@@ -163,11 +162,13 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
     unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const history: { text: string, senderId: string, senderName: string, timestamp: string }[] = data.messages || [];
+        
+        // 💡 FIX: Explicitly define the message object shape to include senderId
+        const history: { senderId: string, senderName: string, text: string, timestamp: string }[] = data.messages || [];
         
         const processedMessages: ChatMessage[] = history.map((msg, index) => ({
             id: index.toString(),
-            senderId: msg.senderId,
+            senderId: msg.senderId, // Now correctly defined
             senderName: msg.senderName,
             text: msg.text,
             timestamp: new Date(msg.timestamp), 
@@ -184,13 +185,11 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
         }
 
       } else {
-        // If no document exists, initialize with a bot welcome message
         if (messages.length === 0 || messages[0].senderId !== CHATBOT_ID) {
             setMessages([{ 
                 id: 'init-bot', 
                 senderId: CHATBOT_ID, 
                 senderName: CHATBOT_NAME, 
-                // 💡 FIX: Use localized greeting based on prop
                 text: lang === 'es' ? `Hola ${userName || 'Invitado'}, ¿en qué puedo ayudarte hoy?` : `Hi ${userName || 'Guest'}, how can I help you get more qualified leads today?`, 
                 timestamp: new Date() 
             }]);
@@ -205,7 +204,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
             socket = null;
         }
     };
-  }, [isChatOpen, setupSocket, userName, currentUserId, lang]); // Add lang dependency
+  }, [isChatOpen, setupSocket, userName, currentUserId, lang]); 
 
   // Effect to scroll to the bottom of the chat window (Unchanged)
   useEffect(() => {
@@ -227,16 +226,14 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       senderId: currentUserId, 
       senderName: userName,
       text: text,
-      // 💡 FIX: Pass the current language to the server
-      lang: lang, 
+      lang: lang, // Pass the current language
     };
 
     socket.emit('send-message', messagePayload);
     setInput('');
   };
 
-  // --- UI Rendering ---
-
+  // --- UI Rendering (Unchanged) ---
   if (!currentUserId) {
     return null;
   }

@@ -3,21 +3,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Server } from 'socket.io';
 import { GoogleGenAI } from '@google/genai'; 
+// Import existing Firebase Admin SDK components
 import { db, admin } from '@/lib/firebase/admin'; 
 import { Server as HttpServer } from 'http'; 
 import type { DefaultEventsMap } from 'socket.io'; 
-import { doc, getDoc } from 'firebase/firestore'; // Used for type reference consistency
 
 // --- Configuration Constants ---
 const SPECIALIST_PHONE = '(708) 314-0477'; 
-const LEAD_QUALIFICATION_TRIGGER = "Please provide your contact information below to connect with a specialist right away:"; 
 const BOT_MODEL = "gemini-2.5-flash"; 
 const BOT_ID = 'BOT_ID';
 const BOT_NAME = 'Barcias Tech AI Specialist';
 const PROJECT_FOCUS = 'Local Service Lead Generation specializing in Plumbers, Electricians, and Landscapers in Chicago, IL and NW Indiana.';
 
-// --- Initialize AI Client ---
+// --- Initialize AI Client (Unchanged) ---
 const aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 
 // --- Custom Type Definitions ---
 type NextApiResponseWithSocket = NextApiResponse & {
@@ -28,20 +28,23 @@ type NextApiResponseWithSocket = NextApiResponse & {
   };
 };
 
+// 💡 FIX 1: Define StoredMessage interface with 'lang' mandatory 
+// (enforced by logic below) and precise properties.
 interface StoredMessage {
     senderId: string;
     senderName: string;
     text: string;
     timestamp: string;
-    // 💡 NEW: Include lang in the stored message type
-    lang?: string; 
+    lang: string; 
 }
 
 
-// --- Core AI Response Generator (Update signature to accept language) ---
+// --- Core AI Response Generator (Unchanged) ---
 const generateAIResponse = async (history: StoredMessage[], lang: string) => { 
+
+  const LEAD_QUALIFICATION_TRIGGER = lang === 'es' ? "Porfavor entra tu information, un especialita se conectara contigo inmediatamente:" :
+    "Please provide your contact information below to connect with a specialist right away:";
     
-  // 💡 NEW INSTRUCTION: Tell the model to respond in the target language
   const languageInstruction = lang === 'es' 
     ? "Responde SIEMPRE en español. Mantén el tono profesional y conciso."
     : "Always respond in English. Maintain a professional and concise tone.";
@@ -63,7 +66,6 @@ const generateAIResponse = async (history: StoredMessage[], lang: string) => {
     4. **Avoid Repetition:** Do not repeat qualifying questions or requests for information (like the email) that the user has already provided in the conversation history. Use the history provided below to maintain context.
   `;
   
-  // Convert chat history into the Gemini Contents format
   const geminiContents = history.map(msg => ({
     role: msg.senderId === BOT_ID ? "model" : "user",
     parts: [{ text: msg.text }],
@@ -114,7 +116,6 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // 💡 MODIFIED: Expect the 'lang' property in the message payload
     socket.on('send-message', async (message: StoredMessage & { lang: string }) => {
       const { lang } = message; 
       const CONVERSATION_PATH = `chats/${message.senderId}`;
@@ -124,16 +125,29 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
       const docSnap = await docRef.get();
       
       const data = docSnap.data();
-      const existingHistory: StoredMessage[] = docSnap.exists && data && Array.isArray(data.messages)
-          ? data.messages as StoredMessage[]
+      const rawHistory: any[] = docSnap.exists && data && Array.isArray(data.messages)
+          ? data.messages
           : [];
       
+      // 💡 FIX 2: Sanitize history by mapping and enforcing all required string properties, 
+      // preventing 'undefined' from being saved to Firestore.
+      const existingHistory: StoredMessage[] = rawHistory.map((msg: any) => ({
+          senderId: msg.senderId || BOT_ID,
+          senderName: msg.senderName || BOT_NAME,
+          text: msg.text || '',
+          timestamp: msg.timestamp || new Date().toISOString(),
+          // Use 'en' default if 'lang' is undefined or missing from old documents
+          lang: msg.lang || 'en', 
+      })); 
+      
+      // Explicitly construct current message to ensure 'lang' is a string
       const currentUserMessage: StoredMessage = {
           senderId: message.senderId,
           senderName: message.senderName || 'Anonymous',
           text: message.text,
           timestamp: new Date().toISOString(),
-          lang: lang, // 💡 NEW: Store language used in this message
+          // Use the passed lang, defaulting to 'en'
+          lang: lang || 'en', 
       };
       
       const fullHistory = [...existingHistory, currentUserMessage];
@@ -155,7 +169,6 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
       io.emit('receive-message', userMessageWithTime); 
       
       // --- 3. Generate and Broadcast AI Response ---
-      // 💡 FIX: Pass the language code to the AI generator
       const aiResponseText = await generateAIResponse(fullHistory, lang); 
       
       const aiMessagePayload: StoredMessage = {
@@ -163,7 +176,7 @@ const socketHandler = async (req: NextApiRequest, res: NextApiResponseWithSocket
         senderName: BOT_NAME,
         text: aiResponseText,
         timestamp: new Date().toISOString(),
-        lang: lang,
+        lang: lang || 'en', // Ensure AI message also has a language tag
       };
 
       // --- 4. Persist AI Message (Atomic Update) ---
