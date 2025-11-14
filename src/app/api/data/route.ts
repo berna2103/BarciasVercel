@@ -203,10 +203,11 @@ const FooterLinkData: FooterLinkType[] = [
   {
     section: 'Support',
     links: [
-      { label: 'Help center', href: '/' },
-      { label: 'Terms of service', href: '/' },
-      { label: 'Legal', href: '/' },
-      { label: 'Privacy Policy', href: '/' },
+      // UPDATED: Links to the new dynamic pages using the /pages/[slug] structure
+      { label: 'Help center', href: '/pages/help-center' },
+      { label: 'Terms of service', href: '/pages/terms-of-service' },
+      { label: 'Legal', href: '/pages/legal' },
+      { label: 'Privacy Policy', href: '/pages/privacy-policy' },
     ],
   },
 ]
