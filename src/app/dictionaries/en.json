@@ -3,7 +3,7 @@
     "headline": "Calling all Plumbers, Electricians, Landscapers in Chicago: Stop Wasting Money on Fake Leads.",
     "subHeadline": "The Proven System to Scale to 40+ Qualified Jobs/Month in the Midwest—Guaranteed First Call in 30 Days.",
     "primaryCta": "Book My FREE Growth Blueprint Session",
-    "secondaryCta": "See The Full $4,500 Value",
+    "secondaryCta": "See How We Guarantee Results",
     "static_prefix_en": "Hey! ",
     "dynamic_words_en": [
       "Plumbers",
@@ -55,16 +55,11 @@
     "subtitle": "Presenting Next-Generation Designs and Solutions. Create, Innovate, and Elevate."
   },
   "review": {
-    "title": "Guaranteed Outcomes"
+    "title": "Real Growth: Trade Pros We've Scaled"
   },
   "specialize": {
     "title": "Proven Strategies Used by Top-Tier Trade Professionals",
-    "subtitle": "We don't build generic marketing sites. We build focused, high-speed digital assets designed to replace expensive lead services and drive calls to your business, whether you're a Plumber, Roofer, or Landscaper."
-  },
-  "pricing": {
-    "title": "The $2,000 Local Pro Lead Engine",
-    "subtitle": "Your entire digital business launched for one flat fee. Stop relying on expensive lead generation services.",
-    "banner": "Stop Paying for Leads. Own Your Pipeline."
+    "subtitle": "We don't build generic marketing sites. We build focused, high-speed digital assets designed to replace expensive lead services and build your dominant local brand, driving calls to your business, whether you're a Plumber, Roofer, or Landscaper."
   },
   "records": [
     {
@@ -110,14 +105,14 @@
   ],
   "specialization_list": [
     {
-      "imgSrc": "/images/specialization/webdesign.svg",
-      "title": "The \"Get-Called-Now\" Mobile Site", 
-      "desc": "A site built for job urgency. Your phone number is a big, clickable button that loads perfectly even with bad 4G service on a job site."
-    },
-    {
       "imgSrc": "/images/specialization/logodesign.svg",
       "title": "Instant Fleet & Uniform Identity", 
       "desc": "Includes a clean logo and brand kit, making your vans and uniforms look more established than the competition."
+    },
+    {
+      "imgSrc": "/images/specialization/webdesign.svg",
+      "title": "The \"Get-Called-Now\" Mobile Site", 
+      "desc": "A site built for job urgency. Your phone number is a big, clickable button that loads perfectly even with bad 4G service on a job site."
     },
     {
       "imgSrc": "/images/specialization/seooptimize.svg",
@@ -140,27 +135,37 @@
       "desc": "We handle hosting, security, and updates. Your site is running 24/7, so you never have to worry about a \"broken website.\""
     }
   ],
-  "plans": [
-    {
-      "type": "The Local Pro Lead Engine",
-      "desc": "Your one-time investment for a professional, 3-in-1 website that starts generating high-quality local leads immediately. Stop paying for expensive lead generation platforms.",
-      "option": [
+  "investment_asset": {
+    "title": "Stop Paying for Leads. Own Your Pipeline.",
+    "subtitle": "Your new digital asset is an investment to replace expensive lead services and secure your future local revenue. See how owning your pipeline guarantees massive ROI.",
+    "cta": "Secure My Launch Slot",
+    "cost_comparison": [
+        {
+            "headline": "Current Lead Service Cost (Average)",
+            "value": "— $800 to $2,500 / mo (Recurrent)",
+            "description": "Paying for non-exclusive leads from sites like HomeAdvisor, Angi, etc. These costs are recurrent and the leads are rarely qualified.",
+            "icon": "/images/icons/cost-icon.svg"
+        },
+        {
+            "headline": "The Local Pro Asset Investment (One-Time)",
+            "value": "$2,000 Flat Fee",
+            "description": "Your 100% owned digital asset designed to generate **40+ qualified, exclusive jobs/mo** after scaling. This investment pays for itself immediately.",
+            "icon": "/images/icons/asset-icon.svg"
+        }
+    ],
+    "guarantees_and_features_title": "The Full $4,500 Value: The Asset Components",
+    "guarantees_and_features_list": [
+        "30-Day Performance Guarantee: We guarantee inbound qualified leads within the first 30 days, or we waive our fees until you do.",
+        "Go Live in 14 Business Days or less (Money-back Timeline Guarantee)",
         "High-Converting, Mobile-First 3-Page Website (Home, Services, Contact)",
         "100% Ownership of Domain and Code",
         "Free Domain & SSL Certificate for 1 Year",
         "Google Business Profile Setup & Local SEO Optimization",
         "Integration of Customer Review Widgets (Google/Yelp)",
         "FREE Physical Branding Kit: 15 Custom Branded T-Shirts (M/L) & 100 Business Cards",
-        "Direct Contact Form Integrated with Your Email/CRM",
-        "Go Live in 14 Business Days or less (Money-back Timeline Guarantee)",
-        "30-Day Performance Guarantee: We guarantee inbound qualified leads within the first 30 days, or we waive our fees until you do."
-      ],
-      "price_label": " One-Time Fee",
-      "value_label": "Estimated Value: $",
-      "save_label": " (Save $",
-      "cta": "Secure My Launch Slot"
-    }
-  ],
+        "Direct Contact Form Integrated with Your Email/CRM"
+    ]
+  },
   "footer": {
     "address": "925 Filbert Street Pennsylvania 18072",
     "phone": "+ 45 34 11 44 11",
@@ -170,20 +175,49 @@
     "newsletter_placeholder": "Email Address*",
     "newsletter_cta": "Subscribe"
   },
+  
   "faq": {
     "title": "Answers to the Big Questions",
     "list": [
       {
         "question": "What exactly is the 30-Day Performance Guarantee?",
-        "answer": "This guarantee covers Phase 1: Lead Activation. We promise your new digital asset will generate at least one qualified lead within the first 30 days, or we waive our fees until it does. This proves the system works immediately. Phase 2: Lead Engine Scale (the goal of 40+ leads) is achieved through consistent SEO efforts over the next 3-6 months."
+        "answer": "This guarantee covers Phase 1: Lead Activation. We promise your new digital asset will generate at least one qualified lead within the first 30 days, or we waive our fees until it does. This proves the system works immediately. This guarantee is our promise to help you grow your business and brand with confidence. Phase 2: Lead Engine Scale (the goal of 40+ leads) is achieved through consistent SEO efforts over the next 3-6 months."
       },
       {
         "question": "How is the $2,000 one-time fee valued at $4,500?",
-        "answer": "The $2,000 price is for the core high-speed digital asset. The $4,500 estimated value includes all the premium extras we package: professional local SEO setup, Google Business Profile optimization, the physical branding kit (t-shirts, cards), and the custom copywriting focused on high-profit services."
+        "answer": "The $2,000 price is for the core high-speed digital asset—your foundation for local dominance. The $4,500 estimated value includes all the premium extras we package: professional local SEO setup, Google Business Profile optimization, the physical branding kit (t-shirts, cards) that builds your brand identity, and the custom copywriting focused on high-profit services."
       },
       {
         "question": "Do you only work with businesses in the Chicago & NW Indiana area?",
         "answer": "Yes. Our entire model is specialized for hyper-local dominance in the Midwest. We focus only on Plumbers, Electricians, and Landscapers in this specific service area (Chicago, Chicagoland suburbs, and NW Indiana) to ensure zero competition from other clients in your immediate market."
+      },
+      {
+        "question": "What is the expected Return on Investment (ROI) compared to paying for leads?",
+        "answer": "When you pay for leads, your ROI is temporary and capped by the lead platform’s cost and quality. By owning your digital asset, your ROI increases over time. The one-time investment replaces monthly lead platform expenses ($800-$2,500/mo) and the asset keeps generating calls for years, leading to a significantly higher long-term ROI and business valuation."
+      },
+      {
+        "question": "How does owning this 'digital asset' help my business scale and build my brand?",
+        "answer": "Scaling requires control. Lead services give you temporary clients; an owned digital asset gives you exclusive customer data, optimized local authority (Google Map Pack dominance), and a professional brand identity (logo, uniforms, site design). This control allows you to consistently attract high-profit jobs and raise your rates, accelerating your business growth."
+      },
+      {
+        "question": "How are your leads different from the 'fake leads' I get from other platforms?",
+        "answer": "Fake leads are generated by the platform and sold to multiple contractors, resulting in price wars. Our system generates inbound, exclusive leads because customers are calling your business directly after finding your asset (your optimized website and Google Business Profile). This means higher intent, less competition, and greater job qualification."
+      },
+      {
+        "question": "What happens after the site launches? Are there ongoing fees or contracts?",
+        "answer": "The $2,000 is a one-time investment for the entire launch. You have no long-term contracts. We include one year of domain and SSL hosting free. After the first year, there is a small, recurring annual fee (typically $150-$200) for hosting, security, and maintenance, which is far less than any lead generation service."
+      },
+      {
+        "question": "Who owns the website, the domain, and the code?",
+        "answer": "You own 100% of everything. We set up the domain registration and hosting under your business name. You receive all code files and credentials upon launch. This ensures that your digital asset is a permanent, transferable part of your business's valuation."
+      },
+      {
+        "question": "What technology is used for the site, and how fast is it?",
+        "answer": "We build using modern, lightweight frameworks optimized for mobile speed (Google PageSpeed 90+ score). This speed is crucial for capturing urgent calls when customers are searching on-the-go with poor cell service. The entire site is designed for immediate loading and maximum phone-call conversion."
+      },
+      {
+        "question": "How do you guarantee domination of the Google Map Pack (3-Pack)?",
+        "answer": "Map Pack dominance is achieved through meticulous Local SEO. We optimize your Google Business Profile (GBP) with service area mapping, geo-targeted high-value keywords, and implement a funnel that ensures a constant stream of verified, 5-star Google reviews. This combination is the foundation for local authority."
       }
     ]
   }

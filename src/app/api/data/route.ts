@@ -37,8 +37,8 @@ const NavLinkData: NavLinkType[] = [
     href: '/#expertise',
   },
   {
-    label: 'The $2K Offer',
-    href: '/#pricing',
+    label: 'The Blueprint',
+    href: '/#investment',
   },
   {
     label: 'Our Promise',

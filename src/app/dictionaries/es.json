@@ -1,9 +1,9 @@
 {
   "hero": {
     "headline": "Plumbers, Landscapers, Electricians in Chicago & NW Indiana: Stop Wasting Money on Unreliable Leads.",
-    "subHeadline": "El Sistema Probado para Escalar a 40+ Trabajos Calificados/Mes en el Midwest Primera Llamada Garantizada en 30 Días.",
+    "subHeadline": "El Sistema Probado para Escalar a 40+ Trabajos Calificados/Mes en el Midwest—Primera Llamada Garantizada en 30 Días.",
     "primaryCta": "Obten Sesión GRATUITA de Plan de Crecimiento",
-    "secondaryCta": "Ver el Valor Completo de $4,500",
+    "secondaryCta": "Ver Nuestra Garantía de Resultados",
     "static_prefix_es": "Hey! ",
     "dynamic_words_es": [
       "Plomeros",
@@ -46,16 +46,11 @@
     "subtitle": "Presentamos Diseños y Soluciones de Próxima Generación. Cree, Innove y Eleve."
   },
   "review": {
-    "title": "Resultados Garantizados"
+    "title": "Crecimiento Real: Profesionales que Hemos Escalado"
   },
   "specialize": {
     "title": "Estrategias Probadas Utilizadas por Profesionales de Oficios de Alto Nivel",
-    "subtitle": "No construimos sitios web de marketing genéricos. Construimos activos digitales enfocados y de alta velocidad diseñados para reemplazar servicios costosos de generación de leads y generar llamadas a su negocio, ya sea Plomero, Techador o Paisajista."
-  },
-  "pricing": {
-    "title": "Consiga Mas Clientes Locales desde $2,000 Garantizado",
-    "subtitle": "Lanzamiento de todo su negocio digital por una tarifa única y plana. Deje de depender de costosos servicios de generación de leads o paginas genericas.",
-    "banner": "Deja De Pagar Por Clientes Potenciales. Sé Dueño De Tu Proceso"
+    "subtitle": "No construimos sitios web de marketing genéricos. Construimos activos digitales enfocados y de alta velocidad diseñados para reemplazar servicios costosos de generación de leads y construir su marca local dominante, generando llamadas a su negocio, ya sea Plomero, Techador o Paisajista."
   },
   "records": [
     {
@@ -101,14 +96,14 @@
   ],
   "specialization_list": [
     {
-      "imgSrc": "/images/specialization/webdesign.svg",
-      "title": "El Sitio Móvil \"Llamada-Ahora\"",
-      "desc": "Un sitio creado para la urgencia del trabajo. Su número de teléfono es un botón grande y pulsable que carga perfectamente incluso con mal servicio 4G en un sitio de trabajo."
-    },
-    {
       "imgSrc": "/images/specialization/logodesign.svg",
       "title": "Identidad Instantánea de Flota y Uniforme",
       "desc": "Incluye un logotipo limpio y un kit de marca, haciendo que sus camionetas y uniformes parezcan más establecidos que la competencia."
+    },
+    {
+      "imgSrc": "/images/specialization/webdesign.svg",
+      "title": "El Sitio Móvil \"Llamada-Ahora\"",
+      "desc": "Un sitio creado para la urgencia del trabajo. Su número de teléfono es un botón grande y pulsable que carga perfectamente incluso con mal servicio 4G en un sitio de trabajo."
     },
     {
       "imgSrc": "/images/specialization/seooptimize.svg",
@@ -131,27 +126,37 @@
       "desc": "Nos encargamos del alojamiento, la seguridad y las actualizaciones. Su sitio está funcionando 24/7, por lo que nunca tiene que preocuparse por un \"sitio web roto\"."
     }
   ],
-  "plans": [
-    {
-      "type": "Consigue Nuevos Clientes Locales Rápidamente",
-      "desc": "Su inversión única para un sitio web profesional 3 en 1 que comienza a generar clientes potenciales locales de alta calidad de inmediato. Deje de pagar por costosos servicios de generación de leads.",
-      "option": [
+  "activo_inversion": {
+    "title": "Deje de Pagar por Leads. Sea Dueño de su Flujo de Clientes.",
+    "subtitle": "Su nuevo activo digital es una inversión única para reemplazar servicios de leads costosos y asegurar su crecimiento local. Compare el costo de los leads versus ser dueño de su propia tubería.",
+    "cta": "Asegurar Mi Espacio de Lanzamiento",
+    "cost_comparison": [
+        {
+            "headline": "Costo Actual de Servicios de Leads (Promedio)",
+            "value": "— $800 a $2,500 / mes (Recurrente)",
+            "description": "Pagar por leads no exclusivos de plataformas como HomeAdvisor o Angi. Los costos son recurrentes y los leads rara vez están calificados.",
+            "icon": "/images/icons/cost-icon.svg"
+        },
+        {
+            "headline": "Inversión en el Activo Pro Local (Única)",
+            "value": "$2,000 Tarifa Plana",
+            "description": "Su activo digital 100% propio diseñado para generar **40+ trabajos calificados y exclusivos/mes** después de escalar. Esta inversión se paga sola de inmediato.",
+            "icon": "/images/icons/asset-icon.svg"
+        }
+    ],
+    "guarantees_and_features_title": "El Valor Completo de $4,500: Los Componentes del Activo",
+    "guarantees_and_features_list": [
+        "Garantía de Rendimiento de 30 Días: Garantizamos clientes potenciales calificados entrantes dentro de los primeros 30 días, o renunciamos a nuestras tarifas hasta que lo hagamos.",
+        "Entrada en Funcionamiento en 14 Días Hábiles o menos (Garantía de Plazo de Entrega)",
         "Sitio web de 3 páginas de alta conversión y \"Mobile-First\" (Inicio, Servicios, Contacto)",
         "100% Propiedad del Dominio y el Código",
         "Dominio y Certificado SSL Gratuitos durante 1 Año",
         "Configuración del Perfil de Negocio de Google y Optimización de SEO Local",
         "Integración de Widgets de Reseñas de Clientes (Google/Yelp)",
         "Kit de Marca Física GRATUITO: 15 Camisetas de Marca Personalizadas (M/L) y 100 Tarjetas de Presentación",
-        "Formulario de Contacto Directo Integrado con su Correo Electrónico/CRM",
-        "Entrada en Funcionamiento en 14 Días Hábiles o menos (Garantía de Plazo de Entrega)",
-        "Garantía de Rendimiento de 30 Días: Garantizamos clientes potenciales calificados entrantes dentro de los primeros 30 días, o renunciamos a nuestras tarifas hasta que lo hagamos."
-      ],
-      "price_label": " Tarifa Única",
-      "value_label": "Valor Estimado: $",
-      "save_label": " (Ahorre $",
-      "cta": "Asegurar Mi Espacio de Lanzamiento"
-    }
-  ],
+        "Formulario de Contacto Directo Integrado con su Correo Electrónico/CRM"
+    ]
+  },
   "footer": {
     "address": "925 Filbert Street Pennsylvania 18072",
     "phone": "+ 45 34 11 44 11",
@@ -161,21 +166,51 @@
     "newsletter_placeholder": "Correo Electrónico*",
     "newsletter_cta": "Suscribirse"
   },
+  
   "faq": {
     "title": "Respuestas a las Grandes Preguntas",
     "list": [
       {
         "question": "¿Qué es exactamente la Garantía de Rendimiento de 30 Días?",
-        "answer": "Esta garantía cubre la Fase 1: Activación de Leads. Prometemos que su nuevo activo digital generará al menos una llamada o contacto calificado dentro de los primeros 30 días, o trabajamos gratis hasta que lo haga. Esto prueba que el sistema funciona inmediatamente. La Fase 2: Escala del Motor de Leads (el objetivo de 40+ leads) se logra mediante esfuerzos continuos de SEO durante los próximos 3 a 6 meses."
+        "answer": "Esta garantía cubre la Fase 1: Activación de Leads. Prometemos que su nuevo activo digital generará al menos una llamada o contacto calificado dentro de los primeros 30 días, o trabajamos gratis hasta que lo haga. Esto prueba que el sistema funciona inmediatamente. Esta garantía es nuestra promesa de ayudarle a crecer su negocio y su marca con confianza. La Fase 2: Escala del Motor de Leads (el objetivo de 40+ leads) se logra mediante esfuerzos continuos de SEO durante los próximos 3 a 6 meses."
       },
       {
         "question": "¿Cómo se valora la tarifa única de $2,000 en $4,500?",
-        "answer": "El precio de $2,000 es por el activo digital de alta velocidad principal. El valor estimado de $4,500 incluye todos los extras premium que empaquetamos: configuración profesional de SEO local, optimización del Perfil de Negocio de Google, el kit de marca física (camisetas, tarjetas) y la redacción de contenido personalizada centrada en servicios de alta rentabilidad."
+        "answer": "El precio de $2,000 es por el activo digital de alta velocidad principal—su fundación para el dominio local. El valor estimado de $4,500 incluye todos los extras premium que empaquetamos: configuración profesional de SEO local, optimización del Perfil de Negocio de Google, el kit de marca física (camisetas, tarjetas) que construye su identidad de marca, y la redacción de contenido personalizada centrada en servicios de alta rentabilidad."
       },
       {
         "question": "¿Trabajan solo con negocios en el área de Chicago y Noroeste de Indiana?",
         "answer": "Sí. Todo nuestro modelo está especializado en el dominio hiperlocal en el Medio Oeste. Nos centramos solo en Plomeros, Electricistas y Paisajistas en esta área de servicio específica (Chicago, suburbios de Chicagoland y Noroeste de Indiana) para asegurar cero competencia de otros clientes en su mercado inmediato."
+      },
+      {
+        "question": "¿Cuál es el Retorno de la Inversión (ROI) esperado en comparación con pagar por leads?",
+        "answer": "Cuando paga por leads, su ROI es temporal y limitado por el costo y la calidad de la plataforma. Al ser dueño de su activo digital, su ROI aumenta con el tiempo. La inversión única reemplaza los gastos mensuales de las plataformas de leads ($800-$2,500/mes) y el activo continúa generando llamadas durante años, lo que lleva a un ROI a largo plazo significativamente mayor y un mayor valor de negocio."
+      },
+      {
+        "question": "¿Cómo me ayuda ser dueño de este 'activo digital' a escalar mi negocio y construir mi marca?",
+        "answer": "Escalar requiere control. Los servicios de leads le dan clientes temporales; un activo digital propio le da datos exclusivos de clientes, autoridad local optimizada (dominio en el Paquete de Mapas de Google) y una identidad de marca profesional (logotipo, uniformes, diseño web). Este control le permite atraer constantemente trabajos de alta rentabilidad y aumentar sus tarifas, acelerando el crecimiento de su negocio."
+      },
+      {
+        "question": "¿En qué se diferencian sus leads de los 'leads falsos' que obtengo de otras plataformas?",
+        "answer": "Los leads falsos son generados por la plataforma y vendidos a varios contratistas, resultando en guerras de precios. Nuestro sistema genera leads exclusivos y entrantes porque los clientes llaman a su negocio directamente después de encontrar su activo (su sitio web optimizado y Perfil de Negocio de Google). Esto significa mayor intención, menos competencia y mayor calificación del trabajo."
+      },
+      {
+        "question": "¿Qué sucede después de que se lanza el sitio? ¿Hay tarifas o contratos continuos?",
+        "answer": "Los $2,000 son una inversión única para todo el lanzamiento. No tiene contratos a largo plazo. Incluimos un año de dominio y alojamiento SSL gratis. Después del primer año, hay una pequeña tarifa anual recurrente (típicamente $150-$200) para alojamiento, seguridad y mantenimiento, lo cual es mucho menor que cualquier servicio de generación de leads."
+      },
+      {
+        "question": "¿Quién es el dueño del sitio web, el dominio y el código?",
+        "answer": "Usted es dueño del 100% de todo. Configuramos el registro del dominio y el alojamiento bajo el nombre de su negocio. Usted recibe todos los archivos de código y credenciales al momento del lanzamiento. Esto asegura que su activo digital sea una parte permanente y transferible de la valoración de su negocio."
+      },
+      {
+        "question": "¿Qué tecnología se utiliza para el sitio y qué tan rápido es?",
+        "answer": "Construimos utilizando marcos de trabajo modernos y ligeros optimizados para la velocidad móvil (puntuación de Google PageSpeed superior a 90). Esta velocidad es crucial para capturar llamadas urgentes cuando los clientes buscan sobre la marcha con un servicio celular deficiente. Todo el sitio está diseñado para la carga inmediata y la máxima conversión de llamadas telefónicas."
+      },
+      {
+        "question": "¿Cómo garantizan el dominio del Paquete de Mapas de Google (3-Pack)?",
+        "answer": "El dominio del Paquete de Mapas se logra a través de un meticuloso SEO Local. Optimizamos su Perfil de Negocio de Google (GBP) con mapeo de área de servicio, palabras clave de alto valor geolocalizadas, e implementamos un embudo que asegura un flujo constante de reseñas verificadas de 5 estrellas en Google. Esta combinación es el fundamento de la autoridad local."
       }
     ]
   }
+
 }

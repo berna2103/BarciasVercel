@@ -24,12 +24,13 @@ interface LeadData {
 const CHATBOT_NAME = "Barcias Tech AI Specialist";
 const CHATBOT_ID = "BOT_ID";
 
-// FIX: Function to dynamically get the lead qualification trigger based on language
 const getQualificationTrigger = (language: string): string => {
     // These must exactly match the non-phone-number part of the server-side trigger strings
     const ENGLISH_TRIGGER = "Please provide your contact information below to connect with a specialist right away:";
     const SPANISH_TRIGGER = "Porfavor entra tu information, un especialita se conectara contigo inmediatamente:";
     
+    // NOTE: The server-side trigger also includes the phone number, 
+    // but the actual qualification prompt text should be enough for detection.
     return language === 'es' ? SPANISH_TRIGGER : ENGLISH_TRIGGER;
 };
 
@@ -39,7 +40,6 @@ let socket: Socket | null = null;
 
 // --- Chatbot Component ---
 const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
-  // SSR Fix
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>(''); 
   
@@ -70,19 +70,18 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
 
   }, []);
 
-  // --- UX Fix: Name Change Handler ---
+  // --- UX Fix: Name Change Handler (OK) ---
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setUserName(e.target.value);
   };
   
-  // Persist name on blur, enforcing a default if empty (UX Fix)
   const handleNameBlur = () => {
       const finalName = userName.trim() || 'Guest';
       setUserName(finalName);
       localStorage.setItem('chat-user-name', finalName);
   }
   
-  // --- Lead Form Handlers (Unchanged) ---
+  // --- Lead Form Handlers (OK) ---
   const handleLeadFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setLeadFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -117,7 +116,8 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
                   setShowLeadForm(false); 
                   setLeadStatus('idle');   
               }, 3000); 
-
+              
+              // Emit user message about submitting info
               socket?.emit('send-message', {
                   senderId: currentUserId,
                   senderName: userName,
@@ -153,30 +153,18 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       console.log("Socket Disconnected. Attempting to reconnect...");
     });
 
-    // CRITICAL FIX: Add all received messages to the state
+    // 🔴 CRITICAL FIX: The socket listener ONLY checks for the lead trigger.
+    // It does NOT update the message state to avoid duplication/race conditions with Firebase.
     socket.on('receive-message', (message: any) => {
-        console.log("Received message from server:", message);
+        console.log("Received message from server:", message.text.substring(0, 30));
         
-        // 1. Add the received message to the messages state
-        setMessages(prevMessages => {
-            const newMessage: ChatMessage = {
-                id: Math.random().toString(36).substring(2, 9), // Use a random ID for client rendering key
-                senderId: message.senderId,
-                senderName: message.senderName,
-                text: message.text,
-                // Server sends Date.now() (number timestamp)
-                timestamp: new Date(message.timestamp), 
-            };
-            return [...prevMessages, newMessage];
-        });
-
-        // 2. Check for Lead Trigger using the current language
+        // Check for Lead Trigger using the current language
         const currentTrigger = getQualificationTrigger(lang);
         if (message.senderId === CHATBOT_ID && message.text.includes(currentTrigger)) {
             setShowLeadForm(true);
         }
     });
-  }, [lang]); // Dependency added to re-create callback if lang changes
+  }, [lang]); 
 
   // Effect for fetching chat history (Single Document Read)
   useEffect(() => {
@@ -189,7 +177,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
     
     let unsubscribe: (() => void) | undefined; 
 
-    // Listen to Firebase for history updates (only when chat is open)
+    // Listen to Firebase for history updates (the single source of truth)
     unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -198,7 +186,7 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
         const history: { senderId: string, senderName: string, text: string, timestamp: { toDate: () => Date } | string }[] = data.messages || [];
         
         const processedMessages: ChatMessage[] = history.map((msg, index) => ({
-            id: index.toString(),
+            id: index.toString(), // Using index is acceptable since the array is always rebuilt
             senderId: msg.senderId, 
             senderName: msg.senderName,
             text: msg.text,
@@ -208,21 +196,23 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
                         : new Date(msg.timestamp as string), 
         }));
         
+        // 🟢 Set messages ONLY from the Firebase snapshot
         setMessages(processedMessages);
         
         // FIX: Check for Lead Trigger using the current language from the prop
         const currentTrigger = getQualificationTrigger(lang);
         const lastBotMessage = processedMessages.slice().reverse().find(m => m.senderId === CHATBOT_ID);
+        
         if (lastBotMessage && lastBotMessage.text.includes(currentTrigger)) {
             setShowLeadForm(true);
         } else {
              setShowLeadForm(false);
-             setLeadStatus('idle');
+             setLeadStatus('idle'); // Reset form status if bot changes mind or history loads without trigger
         }
 
       } else {
         // Initialize chat with a welcome message if no history exists
-        if (messages.length === 0 || messages[0].senderId !== CHATBOT_ID) {
+        if (messages.length === 0) { // Check for empty array to prevent infinite loop on first render
             setMessages([{ 
                 id: 'init-bot', 
                 senderId: CHATBOT_ID, 
@@ -243,9 +233,9 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
             socket = null;
         }
     };
-  }, [isChatOpen, setupSocket, userName, currentUserId, lang]); 
+  }, [isChatOpen, setupSocket, userName, currentUserId, lang, messages.length]); // Added messages.length to trigger welcome message
 
-  // Effect to scroll to the bottom of the chat window (Unchanged)
+  // Effect to scroll to the bottom of the chat window (OK)
   useEffect(() => {
     if (isChatOpen) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -253,13 +243,15 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
   }, [messages, isChatOpen]);
 
 
-  // --- Message Sending Logic ---
+  // --- Message Sending Logic (OK) ---
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     
     const isNameInvalid = userName.trim() === '' || userName.trim() === 'Guest';
-    if (!text || !socket || !connected || isNameInvalid || showLeadForm || !currentUserId) return; 
+    // NOTE: Removed `|| showLeadForm` from the final check, allowing the user to type
+    // even if the form is visible (but they typically won't).
+    if (!text || !socket || !connected || isNameInvalid || !currentUserId) return; 
 
     const messagePayload = {
       senderId: currentUserId, 
@@ -272,15 +264,15 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
     socket.emit('send-message', messagePayload);
     setInput('');
     
-    // NOTE: The message will appear in the UI when the server echoes it back 
-    // via 'receive-message' (or when Firebase updates the history). 
+    // The message will appear in the UI only after Firestore updates via onSnapshot.
   };
 
-  // --- UI Rendering (Unchanged) ---
+  // --- UI Rendering (OK) ---
   if (!currentUserId) {
     return null;
   }
-
+  
+  // ... (rest of the component UI rendering logic remains the same) ...
   const messageClass = (senderId: string) => 
     senderId === currentUserId 
       ? 'self-end bg-primary text-white rounded-br-none' 
@@ -293,7 +285,6 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
       return lang === 'es' ? 'Conectar Ahora' : 'Connect Me Now';
   }
   
-  // FIX: Use the localized trigger text for the prompt
   const localizedTriggerText = getQualificationTrigger(lang).replace(':', '');
 
   return (
@@ -354,7 +345,6 @@ const Chatbot: React.FC<{ lang: string }> = ({ lang }) => {
           {showLeadForm && leadStatus !== 'success' && (
               <form onSubmit={submitLead} className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-darkmode">
                   <p className="text-xs font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                      {/* FIX: Use the localized trigger text for the form prompt */}
                       {localizedTriggerText}
                   </p>
                   <div className="flex flex-col gap-2 mb-2">

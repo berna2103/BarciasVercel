@@ -153,7 +153,7 @@ const Hero: React.FC<HeroProps> = ({ dict, lang }) => {
                     </button>
                   </Link>
                   {/* Secondary CTA: See The Offer, linking to #pricing */}
-                  <Link href={`/${lang}/#pricing`}> 
+                  <Link href={`/${lang}/#investment`}> 
                     <button className='px-6 py-3 md:px-12 md:py-3 text-sm md:text-base font-medium text-primary border rounded-lg border-primary bg-transparent hover:bg-primary hover:text-white hover:cursor-pointer duration-300'>
                       {dict.hero.secondaryCta}
                     </button>
