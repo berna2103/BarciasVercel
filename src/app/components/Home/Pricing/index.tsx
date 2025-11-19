@@ -94,22 +94,22 @@ const InvestmentAsset: React.FC<PricingProps> = ({ dict }) => {
           </div>
           
           {/* Card 2: ROI Analysis and Features (Right Column) */}
-          <div className='lg:col-span-2'> 
+          <div className='md:col-span-2'> 
             <div className='bg-white dark:bg-darkmode rounded-lg shadow-lg dark:shadow-neutral-50/10 border border-black/10 dark:border-white/10 px-7 py-10 h-full'>
               
               {/* === COST COMPARISON / ROI ANALYSIS === */}
               <div className='border-b border-black/10 dark:border-white/10 pb-6 mb-6'>
-                <h3 className='text-3xl font-bold mb-4'>
-                    {dict.pricing?.banner || investmentData.title}
+                <h3 className='text-5xl font-bold mb-4 text-red-500 dark:text-white'>
+                    {dict.pricing?.banner || "The Blueprint"}
                 </h3>
                 
                 {investmentData.cost_comparison?.map((item: any, i: number) => (
-                    <div key={i} className={`flex justify-between items-center py-4 ${i === 0 ? 'border-b border-black/10 dark:border-white/10' : ''}`}>
+                    <div key={i} className={`justify-between items-center py-4 ${i === 0 ? 'border-b border-black/10 dark:border-white/10' : ''}`}>
                         <div>
-                            <p className='text-lg font-bold'>{item.headline}</p>
-                            <p className='text-sm font-normal text-gray-500 dark:text-gray-400'>{item.description}</p>
+                            <p className='text-2xl font-bold'>{item.headline}</p>
+                            <p className='text-sm font-normal text-gray-800 dark:text-gray-400'>{item.description}</p>
                         </div>
-                        <p className='text-xl font-extrabold text-lightdarkblue dark:text-primary flex-shrink-0 ml-4'>
+                        <p className='text-xl font-extrabold text-lightdarkblue dark:text-primary'>
                             {item.value}
                         </p>
                     </div>

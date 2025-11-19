@@ -142,14 +142,14 @@
     "cost_comparison": [
         {
             "headline": "Current Lead Service Cost (Average)",
-            "value": "— $800 to $2,500 / mo (Recurrent)",
+            "value": "$800 to $2,500 / mo (Recurrent)",
             "description": "Paying for non-exclusive leads from sites like HomeAdvisor, Angi, etc. These costs are recurrent and the leads are rarely qualified.",
             "icon": "/images/icons/cost-icon.svg"
         },
         {
             "headline": "The Local Pro Asset Investment (One-Time)",
             "value": "$2,000 Flat Fee",
-            "description": "Your 100% owned digital asset designed to generate **40+ qualified, exclusive jobs/mo** after scaling. This investment pays for itself immediately.",
+            "description": "Your 100% owned digital asset designed to generate 40+ qualified, exclusive jobs/mo after scaling. This investment pays for itself immediately.",
             "icon": "/images/icons/asset-icon.svg"
         }
     ],

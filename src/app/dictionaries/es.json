@@ -133,14 +133,14 @@
     "cost_comparison": [
         {
             "headline": "Costo Actual de Servicios de Leads (Promedio)",
-            "value": "— $800 a $2,500 / mes (Recurrente)",
+            "value": "$800 a $2,500 / mes (Recurrente)",
             "description": "Pagar por leads no exclusivos de plataformas como HomeAdvisor o Angi. Los costos son recurrentes y los leads rara vez están calificados.",
             "icon": "/images/icons/cost-icon.svg"
         },
         {
             "headline": "Inversión en el Activo Pro Local (Única)",
             "value": "$2,000 Tarifa Plana",
-            "description": "Su activo digital 100% propio diseñado para generar **40+ trabajos calificados y exclusivos/mes** después de escalar. Esta inversión se paga sola de inmediato.",
+            "description": "Su activo digital 100% propio diseñado para generar 40+ trabajos calificados y exclusivos/mes después de escalar. Esta inversión se paga sola de inmediato.",
             "icon": "/images/icons/asset-icon.svg"
         }
     ],
